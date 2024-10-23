@@ -22,6 +22,7 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 ```
 
 
+
 #### CFRefulation:0x7863bB375B1b21657378b24Aa361BC9C631E2559
 #### CFArt(NFT):0x17d6eE5c3a60f3a42B9c2799B6E27da441a8A2F6
 

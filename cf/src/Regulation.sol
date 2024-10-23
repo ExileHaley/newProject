@@ -125,12 +125,12 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
     }
 
     function mintCfArt(string memory mark,uint256 amount) external override{
-        TransferHelper.safeTransferFrom(usdt, msg.sender, recipient, amount * 300e18);
+        TransferHelper.safeTransferFrom(usdt, msg.sender, recipient, getPayment(amount));
         CFArt(cfArt).batchMint(msg.sender, amount);
-        emit Mint(mark, cfArt, msg.sender, amount, amount * 300e18, block.timestamp);
+        emit Mint(mark, cfArt, msg.sender, amount, getPayment(amount), block.timestamp);
     }
 
-    function getPayment(uint256 amountNFT) external pure override returns(uint256){
+    function getPayment(uint256 amountNFT) public pure override returns(uint256){
         return amountNFT * 300e18;
     }
 
