@@ -15,6 +15,11 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 ```shell
 $ forge script script/RegulationScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
+### upgrade UpgradeScript
+
+```shell
+$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
+```
 
 
 #### CFRefulation:0x7863bB375B1b21657378b24Aa361BC9C631E2559
