@@ -19,7 +19,6 @@ contract UpgradeScript is Script {
         bytes memory data= "";
         Regulation(payable(regulation)).upgradeToAndCall(address(regulationImpl), data);
         vm.stopBroadcast();
-
     }
 }
 

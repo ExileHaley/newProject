@@ -31,6 +31,7 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 Regulation deployed to: 0x3Bc60E3c98b4c86080E6c030b1F3C84F9188A7d8
   CFArt deployed to: 0xED7268A90a58a9d0640D953e8d8f37C733d92C72
 
+#### CFRefulation 方法
 ```solidity
 // 充值代币，orderNum(订单编号)、orderMark(订单标识)、token(代币合约地址)、amount(要充值的代币数量)
 function deposit(
@@ -69,4 +70,18 @@ function mintCfArt(string memory mark,uint256 amount) external;
 
 //根据用户要铸造的NFT数量返回所需的usdt数量
 function getPayment(uint256 amountNFT) external view returns(uint256)
+```
+
+#### NFTStaking 方法
+```solidity
+//质押NFT，_tokenIds是NFT的tokenId列表
+function stakeNFT(uint256[] memory _tokenIds) external;
+//获取用户收益
+function getUserIncome(address _user) public view returns (uint256);
+//获取用户信息，_tokenIds是NFT的tokenId列表，_extracted用户已经提取的收益
+function getUserInfo(address _user) external view returns(uint256[] memory _tokenIds,uint256 _extracted);
+//提取收益
+function claim() external;
+//用户赎回NFT
+function unstakeNFT() external;
 ```

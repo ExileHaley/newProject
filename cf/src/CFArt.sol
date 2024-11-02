@@ -16,9 +16,8 @@ contract CFArt is ERC721, Ownable{
         _;
     }
 
-    constructor()ERC721("CFArt","CF")Ownable(msg.sender){
-        
-    }
+    constructor()ERC721("CFArt","CF")Ownable(msg.sender){}
+
 
     function setAdmin(address _regulation) external onlyOwner(){
         admin = _regulation;
