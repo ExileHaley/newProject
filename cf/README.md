@@ -28,11 +28,11 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 #### CF deployed to: 0x05E094a292D988DA3E576fe0338d0A9bE596e5f6
 #### NFTStaking deployed to: 0x0408Aea54fbE5C5343bfC670cc381AB64DbB0b35
 
+
+
 #### ABI:./contract/out/regulation.sol/regulation.json
 #### ABI:./contract/out/NFTStaking.sol/NFTStaking.json
 
-Regulation deployed to: 0x3Bc60E3c98b4c86080E6c030b1F3C84F9188A7d8
-  CFArt deployed to: 0xED7268A90a58a9d0640D953e8d8f37C733d92C72
 
 #### CFRefulation 方法
 ```solidity
