@@ -6,12 +6,19 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { SignatureChecker } from "./libraries/SignatureChecker.sol";
 import { SignatureInfo } from "./libraries/SignatureInfo.sol";
 import { TransferHelper } from "./libraries/TransferHelper.sol";
 import { IRegulation } from "./interface/IRegulation.sol";
 import { CFArt } from "./CFArt.sol";
+import { PancakeLibrary } from "./libraries/PancakeLibrary.sol";
+import { IUniswapV2Router } from "./interface/IUniswapV2Router.sol";
+
+interface IERC20Mint{
+    function mint(address to, uint256 amount) external;
+}
 
 contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSUpgradeable{
     using ECDSA for bytes32;
@@ -25,6 +32,9 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
     address public cfArt;
     address public usdt;
     address public recipient;
+    address public uniswapV2Factory;
+    address public uniswapV2Router;
+
     mapping(string => mapping(string => bool)) public override isExcuted;
     receive() external payable{}
 
@@ -33,7 +43,13 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         _;
     }
 
-    function initialize(address _admin, address _cfArt, address _usdt, address _recipient) public initializer {
+    function initialize(
+        address _admin, 
+        address _cfArt, 
+        address _usdt, 
+        address _recipient, 
+        address _uniswapV2Factory,
+        address _uniswapV2Router) public initializer {
         __EIP712_init_unchained("Regulation", "1");
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
@@ -41,6 +57,8 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         cfArt = _cfArt;
         usdt = _usdt;
         recipient = _recipient;
+        uniswapV2Factory = _uniswapV2Factory;
+        uniswapV2Router = _uniswapV2Router;
     }
 
     function setConfig(address _cfArt,address _usdt,address _recipient) external{
@@ -161,5 +179,36 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
             _msg.deadline
         ));
     }
+
+    mapping (string => bool) public mintERC20Result;
+
+    function mintERC20(string memory _mark, address _token, address _recipient, uint256 _amount) external onlyAdmin(){
+        IERC20Mint(_token).mint(_recipient, _amount);
+        mintERC20Result[_mark] = true;
+    }
+
+    function purchase(address user, uint256 amountUsdt, address token) external onlyAdmin(){
+        TransferHelper.safeTransferFrom(usdt, user, address(this), amountUsdt);
+        IERC20(usdt).approve(uniswapV2Router, amountUsdt);
+
+        address[] memory path = new address[](2);
+        path[0] = usdt;
+        path[1] = token;
+
+        IUniswapV2Router(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amountUsdt, 
+            0, 
+            path, 
+            user, 
+            block.timestamp
+        );
+
+    }
+
+    function getTokenPrice(address _token) external view returns(uint256){
+        (uint reserveIn, uint reserveOut) = PancakeLibrary.getReserves(uniswapV2Factory, _token, usdt);
+        return PancakeLibrary.getAmountOut(1e18, reserveIn, reserveOut);
+    }
+
 }
 //["001","mint","0x8dfe865f43932415D866D524e4c5Dbece8a7A9c8","0x48f74550535aA6Ab31f62e8f0c00863866C8606b",1000000000,0,10000,28,"0xb0e94d4e3fd77c427ed9bf82cbd5b122f033ac504ce13742025c01e6d5c87f72","0x3117e9bfe7de52a37a3e89c90501a33dbd62874c2ae229ced8ea7ae166dc1632"]

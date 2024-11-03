@@ -13,7 +13,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/RegulationScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
+$ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 ### upgrade UpgradeScript
 
@@ -23,10 +23,13 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 
 
 
-#### CFRefulation:0x7863bB375B1b21657378b24Aa361BC9C631E2559
-#### CFArt(NFT):0x17d6eE5c3a60f3a42B9c2799B6E27da441a8A2F6
+#### Regulation deployed to: 0xa66E8C29D549CB71E15ef4C8A671f0B30E4B22f9
+#### CFArt deployed to: 0x4442a7D1BC4F74621017737A3db152Ef569C54B8
+#### CF deployed to: 0x05E094a292D988DA3E576fe0338d0A9bE596e5f6
+#### NFTStaking deployed to: 0x0408Aea54fbE5C5343bfC670cc381AB64DbB0b35
 
 #### ABI:./contract/out/regulation.sol/regulation.json
+#### ABI:./contract/out/NFTStaking.sol/NFTStaking.json
 
 Regulation deployed to: 0x3Bc60E3c98b4c86080E6c030b1F3C84F9188A7d8
   CFArt deployed to: 0xED7268A90a58a9d0640D953e8d8f37C733d92C72

@@ -14,7 +14,7 @@ contract CFTest is Test{
     address public walletStore;
     address public usdt;
     address public uniswapV2Router;
-
+    address public regulation;
     address public nftStaking;
 
     uint256 mainnetFork;
@@ -24,9 +24,11 @@ contract CFTest is Test{
         vm.selectFork(mainnetFork);
         uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);
         usdt = address(0x55d398326f99059fF775485246999027B3197955);
+        
         deployUser = vm.addr(1);
         walletStore = vm.addr(2);
         nftStaking = vm.addr(4);
+        regulation = vm.addr(5);
 
         console.log("deployUser address:",deployUser);
         console.log("walletStore address:",walletStore);
@@ -34,7 +36,7 @@ contract CFTest is Test{
         
 
         vm.startPrank(deployUser);
-        cf = new CF(walletStore);
+        cf = new CF(walletStore, regulation);
         cf.setNftStaking(nftStaking);
         // cf.transfer(walletStore, 800000e18);
         vm.stopPrank();
@@ -47,7 +49,7 @@ contract CFTest is Test{
         deal(usdt, deployUser, 10000e18);
         cf.approve(uniswapV2Router, 100000000e18);
         IERC20(usdt).approve(uniswapV2Router, 10000e18);
-
+        console.log("Before addLiquidity balance of deployUser:",cf.balanceOf(deployUser));
         IUniswapV2Router(uniswapV2Router).addLiquidity(
             usdt, 
             address(cf), 
