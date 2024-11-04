@@ -84,7 +84,7 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         address token,
         uint256 amount
     ) external override{
-        TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(token, msg.sender, recipient, amount);
         emit Recharge(orderNum, orderMark, token, msg.sender, amount, block.timestamp);
     }
 
