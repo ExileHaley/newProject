@@ -95,6 +95,7 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         if(_msg.token != address(0)) TransferHelper.safeTransfer(_msg.token, _msg.recipient, _msg.amount);
         else TransferHelper.safeTransferETH(_msg.recipient, _msg.amount);
         isExcuted[_msg.orderNum][_msg.orderMark] = true;
+        isExcuted[_msg.orderMark][_msg.orderNum] = true;
         nonce++;
         emit Withdraw(_msg.orderNum, _msg.orderMark, _msg.token, _msg.recipient, _msg.amount, _msg.nonce, block.timestamp);
     }
