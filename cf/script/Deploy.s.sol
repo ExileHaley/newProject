@@ -16,16 +16,20 @@ contract Deploy is Script {
 
     address admin;
     address recipient;
+    address tokenRecipient;
     address usdt;
     address marketing;
     address uniswapV2Factory;
     address uniswapV2Router;
 
     function setUp() public {
-        admin = address(0x8EC1Cd137898008f50A623EF418D6eda5CE25052);
+
+        admin = address(0x9F54d7EAbE4B64B3f6E802885A5D4Bbcb7e8BE0e);
         usdt = address(0x55d398326f99059fF775485246999027B3197955);
+        tokenRecipient = address(0x50a67E10075Ccb0899Ddb00f8ACe00A30cAEb1b6);
+
         recipient = address(0xCc946894c70469Af085669ccB7Ab8EA21ecA6d47);
-        marketing = address(0x8EC1Cd137898008f50A623EF418D6eda5CE25052);
+        marketing = address(0xCc946894c70469Af085669ccB7Ab8EA21ecA6d47);
 
         uniswapV2Factory = address(0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73);
         uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);
@@ -52,9 +56,9 @@ contract Deploy is Script {
         cfArt.setUrl("https://cf-nft.s3.ap-east-1.amazonaws.com/nft_json/");
 
 
-        cf = new CF(marketing, address(regulation));
+        cf = new CF(marketing, address(regulation), tokenRecipient);
 
-         NFTStaking nftStakingImpl = new NFTStaking();
+        NFTStaking nftStakingImpl = new NFTStaking();
 
         // 使用ERC1967代理合约
         ERC1967Proxy nftStakingProxy = new ERC1967Proxy(
@@ -64,17 +68,16 @@ contract Deploy is Script {
 
         // 将代理合约实例化为nftStaking
         nftStaking = NFTStaking(payable(nftStakingProxy));
-
         cf.setNftStaking(address(nftStaking));
-
 
         vm.stopBroadcast();
 
         // 输出部署地址
-        console.log("Regulation deployed to:", address(regulation));
-        console.log("CFArt deployed to:", address(cfArt));
-        console.log("CF deployed to:",address(cf));
-        console.log("NFTStaking deployed to:",address(nftStaking));
+        console.log("Regulation:", address(regulation));
+        console.log("CF NFT:", address(cfArt));
+        console.log("CF Token:",address(cf));
+        console.log("NFTStaking:",address(nftStaking));
+        console.log("Pancake pair:",cf.pancakePair());
     }
 
 }

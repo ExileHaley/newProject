@@ -59,6 +59,7 @@ contract CF is ERC20, Ownable {
     bool private swapping;
     mapping(address => bool) public isExemptFromTax;
     address public admin;
+    uint256 MAXSUPPLY = 100000000000 ether;
     
 
     event TaxRatesUpdated(uint256 newBuyTax, uint256 newSellTax);
@@ -69,7 +70,8 @@ contract CF is ERC20, Ownable {
 
     constructor(
         address _treasuryWallet,
-        address _cfRegulation
+        address _cfRegulation,
+        address _initialRecipient
     ) ERC20("CF", "CF") Ownable(msg.sender) {
         require(_treasuryWallet != address(0), "Treasury wallet cannot be zero address");
         treasuryWallet = _treasuryWallet;
@@ -83,8 +85,8 @@ contract CF is ERC20, Ownable {
         isExemptFromTax[_treasuryWallet] = true;
         isExemptFromTax[address(this)] = true;
         
-        uint256 initialSupply = 1000000 ether;
-        _mint(msg.sender, initialSupply);
+        uint256 initialSupply = 4550000000 ether;
+        _mint(_initialRecipient, initialSupply);
     }
 
     modifier onlyAdmin() {
@@ -140,7 +142,7 @@ contract CF is ERC20, Ownable {
         address to,
         uint256 amount
     ) internal virtual override {
-        if(!isContract(from) && from != address(0)) require(amount <= balanceOf(from) - 1e18, "ERC20: transfer amount exceeds balance");
+        if(!isContract(from) && from != address(0)) require(amount + 1e18 <= balanceOf(from), "ERC20: transfer amount exceeds balance");
 
         if (swapping) {
             super._update(from, to, amount);
@@ -244,6 +246,7 @@ contract CF is ERC20, Ownable {
 
 
     function mint(address to, uint256 amount) external onlyAdmin(){
+        require(totalSupply() + amount <= MAXSUPPLY,"ERC20: mint amount exceeds maxSupply.");
         _mint(to, amount);
     }
 }
