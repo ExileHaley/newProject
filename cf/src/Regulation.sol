@@ -61,7 +61,7 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         uniswapV2Router = _uniswapV2Router;
     }
 
-    function setConfig(address _cfArt,address _usdt,address _recipient) external{
+    function setConfig(address _cfArt,address _usdt,address _recipient) external onlyOwner(){
         cfArt = _cfArt;
         usdt = _usdt;
         recipient = _recipient;
