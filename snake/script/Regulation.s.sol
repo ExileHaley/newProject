@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 import {Regulation} from "../src/Regulation.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {TestERC20} from "../src/TestERC20.sol";
 
 contract Deploy is Script {
     Regulation public regulation;
@@ -38,10 +37,6 @@ contract Deploy is Script {
         regulation = Regulation(payable(regulationProxy));
 
 
-
-        //部署测试代币和设置代币
-        TestERC20 testERC20 = new TestERC20();
-        regulation.setToken(address(testERC20));
         vm.stopBroadcast();
         // 输出部署地址
         
