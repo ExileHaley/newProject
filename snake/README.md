@@ -16,14 +16,14 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 $ forge script script/Regulation.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 
-
 ### upgrade UpgradeScript
 ```shell
 $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 
 
-#### regulation address:
+#### regulation address:0xBCFC3CEe6b79FB9D9532ED83D6656F39856aCBbb
+#### testERC20:0x256CB03D0361Da7a3BdABAa3146E54BC0234BFB3
 
 #### Refulation 方法
 ```solidity

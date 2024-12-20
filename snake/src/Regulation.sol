@@ -39,11 +39,14 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         admin = _admin; 
         token = _token;
         recipient = _recipient;
-
     }
 
     function setConfig(address _recipient) external onlyOwner(){
         recipient = _recipient;
+    }
+
+    function setToken(address _token) external onlyOwner(){
+        token = _token;
     }
 
     // Authorize contract upgrades only by the owner

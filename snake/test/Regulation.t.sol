@@ -131,4 +131,12 @@ contract RegulationTest is Test {
         vm.stopPrank();
     }
 
+    function test_upgrade()public {
+        vm.startPrank(owner);
+        Regulation regulationImpl = new Regulation();
+        bytes memory data= "";
+        regulation.upgradeToAndCall(address(regulationImpl), data);
+        vm.stopPrank();
+    }
+
 }
