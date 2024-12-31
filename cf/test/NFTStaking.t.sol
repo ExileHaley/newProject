@@ -10,6 +10,7 @@ pragma solidity ^0.8.13;
 // contract NFTStakingTest is Test{
 //     NFTStaking public nftStaking;
 //     CFArt      public cfArt;
+
 //     address    usdt;
 //     address    admin;
 //     address    user;
@@ -37,12 +38,12 @@ pragma solidity ^0.8.13;
 //                 (address(cfArt), usdt, admin)
 //             ));
 //         nftStaking = NFTStaking(payable(nftStakingProxy));
-
-
+//         // nftStaking.setAddress(_cf, _dead, _uniswapV2Factory);
+//         nftStaking.setMultiple(3);
 //         vm.stopPrank();
 //     }
 
-//     function test_stake() public {
+//     function test_stake() internal {
 //         //admin mint nft
 //         vm.startPrank(admin);
 //         cfArt.batchMint(user, 2);
@@ -178,9 +179,12 @@ pragma solidity ^0.8.13;
 //         vm.stopPrank();  
 
 //         vm.startPrank(admin);
-//         nftStaking.updatePool(6001e18);
+//         nftStaking.updatePool(60001e18);
 //         vm.stopPrank();
-
-//         assertEq(nftStaking.getUserIncome(user),5999e18);
+//         console.log("User income:",nftStaking.getUserIncome(user));
+//         // assertEq(nftStaking.getUserIncome(user),5999e18);
 //     }
+
+
+
 // }

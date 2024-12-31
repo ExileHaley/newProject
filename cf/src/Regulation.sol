@@ -28,6 +28,8 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
 
 
     uint256 public override nonce;
+    address public cf;
+    address public dead;
     address public admin;
     address public cfArt;
     address public usdt;
@@ -65,6 +67,11 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         cfArt = _cfArt;
         usdt = _usdt;
         recipient = _recipient;
+    }
+
+    function setCf(address _cf, address _dead) external onlyOwner(){
+        cf = _cf;
+        dead = _dead;
     }
 
     // Authorize contract upgrades only by the owner
@@ -144,13 +151,13 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
     }
 
     function mintCfArt(string memory mark,uint256 amount) external override{
-        TransferHelper.safeTransferFrom(usdt, msg.sender, recipient, getPayment(amount));
+        TransferHelper.safeTransferFrom(cf, msg.sender, dead, getPayment(amount));
         CFArt(cfArt).batchMint(msg.sender, amount);
         emit Mint(mark, cfArt, msg.sender, amount, getPayment(amount), block.timestamp);
     }
 
     function getPayment(uint256 amountNFT) public pure override returns(uint256){
-        return amountNFT * 300e18;
+        return amountNFT * 1000000e18;
     }
 
 

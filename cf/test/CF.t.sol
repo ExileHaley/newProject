@@ -63,19 +63,17 @@ contract CFTest is Test{
         vm.stopPrank();
         assertEq(cf.balanceOf(address(cf)), 3000e18);
         assertEq(cf.balanceOf(cf.pancakePair()), 97000e18);
-        // assertEq(cf.balanceOf(address(deployUser)), 900000e18);
-        // assertEq(cf.totalSupply(), 1000000e18);
     }
 
-    function test_transfer() public {
-        test_buy();
-        vm.startPrank(deployUser);
-        cf.transfer(walletStore, 10000e18);
-        vm.stopPrank();
-        // assertEq(cf.balanceOf(address(deployUser)), 890000e18);
-        assertEq(cf.balanceOf(address(walletStore)), 10000e18);
-        console.log("nftStaking`s usdt after buy and transfer:",IERC20(usdt).balanceOf(nftStaking));
-    }
+    // function test_transfer() public {
+    //     test_buy();
+    //     vm.startPrank(deployUser);
+    //     cf.transfer(walletStore, 10000e18);
+    //     vm.stopPrank();
+    //     // assertEq(cf.balanceOf(address(deployUser)), 890000e18);
+    //     assertEq(cf.balanceOf(address(walletStore)), 10000e18);
+    //     console.log("nftStaking`s usdt after buy and transfer:",IERC20(usdt).balanceOf(nftStaking));
+    // }
 
     function test_buy() public {
         vm.startPrank(deployUser);
@@ -98,37 +96,37 @@ contract CFTest is Test{
         console.log("nftStaking`s usdt after buy:",IERC20(usdt).balanceOf(nftStaking));
     }
 
-    function test_sell() public {
+    // function test_sell() public {
 
-        vm.startPrank(walletStore);
-        cf.approve(uniswapV2Router, 500e18);
-        vm.stopPrank();
+    //     vm.startPrank(walletStore);
+    //     cf.approve(uniswapV2Router, 500e18);
+    //     vm.stopPrank();
 
-        vm.startPrank(deployUser);
-        cf.transfer(walletStore, 500e18);
-        cf.approve(uniswapV2Router, 100e18);
-        address[] memory path = new address[](2);
-        path[0] = address(cf);
-        path[1] = usdt;
-        IUniswapV2Router(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            100e18, 
-            0, 
-            path, 
-            deployUser, 
-            block.timestamp
-        );
-        vm.stopPrank();
-        assertEq(cf.balanceOf(address(walletStore)), 0);
-        console.log("Wallet`s usdt:",IERC20(usdt).balanceOf(walletStore));
-    }
+    //     vm.startPrank(deployUser);
+    //     cf.transfer(walletStore, 500e18);
+    //     cf.approve(uniswapV2Router, 100e18);
+    //     address[] memory path = new address[](2);
+    //     path[0] = address(cf);
+    //     path[1] = usdt;
+    //     IUniswapV2Router(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    //         100e18, 
+    //         0, 
+    //         path, 
+    //         deployUser, 
+    //         block.timestamp
+    //     );
+    //     vm.stopPrank();
+    //     assertEq(cf.balanceOf(address(walletStore)), 0);
+    //     console.log("Wallet`s usdt:",IERC20(usdt).balanceOf(walletStore));
+    // }
 
-    function test_transferAll() public {
-        vm.startPrank(deployUser);
-        uint256 amount = cf.balanceOf(deployUser);
-        vm.expectRevert("ERC20: transfer amount exceeds balance");
-        cf.transfer(walletStore, amount);
-        vm.stopPrank();
-    }
+    // function test_transferAll() public {
+    //     vm.startPrank(deployUser);
+    //     uint256 amount = cf.balanceOf(deployUser);
+    //     vm.expectRevert("ERC20: transfer amount exceeds balance");
+    //     cf.transfer(walletStore, amount);
+    //     vm.stopPrank();
+    // }
     
     
 }

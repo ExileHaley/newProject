@@ -7,6 +7,7 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { ERC721Holder } from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import { TransferHelper } from "./libraries/TransferHelper.sol";
+import { PancakeLibrary } from "./libraries/PancakeLibrary.sol";
 
 contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC721Holder{
 
@@ -29,12 +30,17 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         uint256   extracted;
         uint256   debt;
         uint256   pending;
+        uint256   cardinality;
     }
 
     mapping(address => User) userInfo;
     address cfArt;
     address usdt;
     address admin;
+    address cf;
+    address dead;
+    address uniswapV2Factory;
+    uint8   public multiple;
     uint256 totalStaking;
     uint256 public perStakingReward;
 
@@ -54,6 +60,15 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
+    function setAddress(address _cf, address _dead, address _uniswapV2Factory) external onlyOwner(){
+        cf = _cf;
+        dead = _dead;
+        uniswapV2Factory = _uniswapV2Factory;
+    }
+
+    function setMultiple(uint8 _multiple) external onlyOwner(){
+        multiple = _multiple;
+    }
 
     function stakeNFT(uint256[] memory _tokenIds) external {
         User storage user = userInfo[msg.sender];
@@ -78,7 +93,7 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     function getUserIncome(address _user) public view returns (uint256) {
         User memory user = userInfo[_user];
         uint256 _currentIncome = user.tokenIds.length * perStakingReward + user.pending - user.debt;
-        uint256 _maxDeserve = user.tokenIds.length * 1500e18;
+        uint256 _maxDeserve = user.tokenIds.length * ((uint256(300e18) + user.cardinality) * multiple) ;
         // compute remaining and compute truth reward.
         uint256 _remainingDeserve = user.extracted >= _maxDeserve ? 0 : _maxDeserve - user.extracted;
         return _currentIncome < _remainingDeserve ? _currentIncome : _remainingDeserve;
@@ -137,6 +152,18 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         require(amount >0, "Error amount.");
         if(totalStaking == 0) totalStaking = 1;
         perStakingReward += (amount / totalStaking);
+    }
+
+    function getAmountOut(address _token, uint256 _amount) public view returns(uint256){
+        (uint reserveIn, uint reserveOut) = PancakeLibrary.getReserves(uniswapV2Factory, _token, usdt);
+        return PancakeLibrary.getAmountOut(_amount, reserveIn, reserveOut);
+    }
+
+    function purchaseCardinality(uint256 amount) external {
+        TransferHelper.safeTransferFrom(cf, msg.sender, dead, amount);
+        uint256 amountUSDT = getAmountOut(cf, amount);
+        User storage user = userInfo[msg.sender];
+        user.cardinality += amountUSDT;
     }
 
 }
