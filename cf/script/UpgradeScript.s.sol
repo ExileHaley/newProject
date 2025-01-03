@@ -18,7 +18,7 @@ contract UpgradeScript is Script {
         regulation = Regulation(payable(0x67A3BE1A4A7aF26A3FF69B380Ce8C127a493d9e0));
         nftStaking = NFTStaking(payable(0x2B82e39d41E3BDcaFcB2Cc6FD5D936C2B9Ffb515));
 
-        cf = address(0xb5C9f24D5cFAA4531b627796e952CeCCaA46bB87);
+        cf = address(0xC3214Da07B8985878f2F3590a01a7D4202Caf01d);
         dead = address(0x000000000000000000000000000000000000dEaD);
         uniswapV2Factory = address(0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73);
     }

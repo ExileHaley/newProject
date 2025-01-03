@@ -36,7 +36,6 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 #### ABI:./contract/out/NFTStaking.sol/NFTStaking.json
 
 
-<!-- #### cf token test:0x629fF2772E2a0b160CB3Bb3e74Ea507cB7366ebA  测试token请忽略-->
 
 
 #### CFRefulation 方法更新

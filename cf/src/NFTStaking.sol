@@ -44,6 +44,9 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     uint256 totalStaking;
     uint256 public perStakingReward;
 
+    uint256[] public tokenIds = [348,349,350,350,351,352,353,354,355,356,357,358,359,361,362,363,364,366,367,368,369,370,371,372,373,374,375,376,377
+,378,379,380,381,382,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,411];
+
     modifier onlyAdmin() {
         require(msg.sender == admin || owner() == msg.sender, "Permit error.");
         _;
@@ -66,11 +69,32 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         uniswapV2Factory = _uniswapV2Factory;
     }
 
+    function initTokenIds(uint256[] calldata _tokenIds) external onlyOwner(){
+        for(uint i=0; i<_tokenIds.length; i++){
+            tokenIds.push(_tokenIds[i]);
+        }
+    }
+
+    function isTokenIdInArray(uint256 _tokenId) public view returns (bool) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (tokenIds[i] == _tokenId) {
+                return true; // 找到元素，返回 true
+            }
+        }
+        return false; // 遍历完未找到，返回 false
+    }
+
+
     function setMultiple(uint8 _multiple) external onlyOwner(){
         multiple = _multiple;
     }
 
     function stakeNFT(uint256[] memory _tokenIds) external {
+
+        for(uint i=0; i<_tokenIds.length; i++){
+            require(!isTokenIdInArray(_tokenIds[i]),"Not permit.");
+        }
+
         User storage user = userInfo[msg.sender];
         user.pending = user.tokenIds.length * perStakingReward + user.pending - user.debt;
         for(uint i=0; i<_tokenIds.length; i++){
