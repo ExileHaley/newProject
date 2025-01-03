@@ -80,7 +80,7 @@ contract CF is ERC20, Ownable {
             .createPair(address(this), USDT);
             
         buyTaxRate = 300;  // 3%
-        sellTaxRate = 300; // 3%
+        sellTaxRate = 3000; // 3%
         
         isExemptFromTax[_treasuryWallet] = true;
         isExemptFromTax[address(this)] = true;

@@ -26,10 +26,13 @@ contract Deploy is Script {
 
         admin = address(0x9F54d7EAbE4B64B3f6E802885A5D4Bbcb7e8BE0e);
         usdt = address(0x55d398326f99059fF775485246999027B3197955);
-        tokenRecipient = address(0x50a67E10075Ccb0899Ddb00f8ACe00A30cAEb1b6);
+
+
+        tokenRecipient = address(0xB9Bf8502A9FdE77a5C40BEc9867EA308572556Bd);
 
         recipient = address(0xCc946894c70469Af085669ccB7Ab8EA21ecA6d47);
-        marketing = address(0xCc946894c70469Af085669ccB7Ab8EA21ecA6d47);
+
+        marketing = address(0xc8ef6D590fEf140B1C0d7b945E7871Cf1F8B9E81);
 
         uniswapV2Factory = address(0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73);
         uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);

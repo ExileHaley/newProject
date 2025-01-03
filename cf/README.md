@@ -13,7 +13,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/DeployCf.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
+$ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 ### upgrade UpgradeScript
 
@@ -25,7 +25,7 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 
 ####  Regulation: 0x67A3BE1A4A7aF26A3FF69B380Ce8C127a493d9e0
 ####  CF NFT: 0x14C5DF0fB04b07d63CfC55983A8393D7581907ae
-####  CF Token: 0xb5C9f24D5cFAA4531b627796e952CeCCaA46bB87
+####  CF Token: 0xC3214Da07B8985878f2F3590a01a7D4202Caf01d
 ####  NFTStaking: 0x2B82e39d41E3BDcaFcB2Cc6FD5D936C2B9Ffb515
 
 ####  Pancake pair: 0x3c1EBD94454eF0af97fa7f5ef41ba742dB4AB6E2
