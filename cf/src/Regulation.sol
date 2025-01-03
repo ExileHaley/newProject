@@ -69,10 +69,10 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         recipient = _recipient;
     }
 
-    function setCf(address _cf, address _dead) external onlyOwner(){
+    function setCf(address _cf) external onlyOwner(){
         cf = _cf;
-        dead = _dead;
     }
+
 
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
