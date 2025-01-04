@@ -67,8 +67,8 @@ contract CF is ERC20, Ownable {
         pancakePair = IPancakeFactory(pancakeRouter.factory())
             .createPair(address(this), USDT);
             
-        buyTaxRate = 300;  // 3%
-        sellTaxRate = 300; // 3%
+        buyTaxRate = 4900;  // 49%
+        sellTaxRate = 4900; // 49%
         
         isExemptFromTax[marketing] = true;
         isExemptFromTax[address(this)] = true;
@@ -87,7 +87,7 @@ contract CF is ERC20, Ownable {
     }
     
     function setTaxRates(uint256 _buyTaxRate, uint256 _sellTaxRate) external onlyOwner {
-        require(_buyTaxRate <= 3000 && _sellTaxRate <= 3000, "Tax rate cannot exceed 30%");
+        require(_buyTaxRate <= 4900 && _sellTaxRate <= 4900, "Tax rate cannot exceed 30%");
         buyTaxRate = _buyTaxRate;
         sellTaxRate = _sellTaxRate;
     }

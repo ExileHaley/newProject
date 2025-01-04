@@ -25,10 +25,10 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 
 ####  Regulation: 0x67A3BE1A4A7aF26A3FF69B380Ce8C127a493d9e0
 ####  CF NFT: 0x14C5DF0fB04b07d63CfC55983A8393D7581907ae
-####  CF Token: 0xC3214Da07B8985878f2F3590a01a7D4202Caf01d
-####  NFTStaking: 0x2B82e39d41E3BDcaFcB2Cc6FD5D936C2B9Ffb515
+####  CF Token: 0xA8c18Ea63386a0bbA6612A3479b723AFd9Cd02FB
+####  NFTStaking: 0xf6d2bABd8Dfd50Ad63F204D569CF968CaFF8a39c
 
-####  Pancake pair: 0x3c1EBD94454eF0af97fa7f5ef41ba742dB4AB6E2
+####  Pancake pair: 
 
 
 
