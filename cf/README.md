@@ -28,7 +28,7 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com
 ####  CF Token: 0xA8c18Ea63386a0bbA6612A3479b723AFd9Cd02FB
 ####  NFTStaking: 0xf6d2bABd8Dfd50Ad63F204D569CF968CaFF8a39c
 
-####  Pancake pair: 
+####  Pancake pair: 0xbbD637e5B4e3D1Db543fC9b2eEE17d270BEC64Ca
 
 
 
