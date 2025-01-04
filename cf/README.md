@@ -21,12 +21,15 @@ $ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broa
 $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 
+#### cf address: 0x40E79D34CDa3d3C038A894118895b74f88d17b5e
+#### cfArt address: 0x6714948D8Bc1a53522137f9c69E8df73374583f7
+#### regulation address: 0x11F586dc8cD7E0a9a505EDdd07d9Ac3fA57eb9f3
+#### nftStaking address: 0xA848a7fB6e86eD236Aa2F11C7D9ADD4C1F354f6f
+#### pancake pool address: 0x37eA03b5D173bc5A4413fD8f23A7ff16bEB53ede
 
 
 #### ABI:./contract/out/regulation.sol/regulation.json
 #### ABI:./contract/out/NFTStaking.sol/NFTStaking.json
-
-
 
 
 #### CFRefulation 方法更新
