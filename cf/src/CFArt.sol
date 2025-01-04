@@ -7,20 +7,20 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract CFArt is ERC721, Ownable{
     using Strings for uint256;
-    address admin;
+    address regulation;
     uint256 public index = 1;
     string url;
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin || msg.sender == owner());
+    modifier onlyRegulation() {
+        require(msg.sender == regulation || msg.sender == owner());
         _;
     }
 
     constructor()ERC721("CFArt","CF")Ownable(msg.sender){}
 
 
-    function setAdmin(address _regulation) external onlyOwner(){
-        admin = _regulation;
+    function setConfig(address _regulation) external onlyOwner(){
+        regulation = _regulation;
     }
 
     function setUrl(string memory _url) external onlyOwner(){
@@ -31,7 +31,7 @@ contract CFArt is ERC721, Ownable{
         return url;
     }
 
-    function batchMint(address addr, uint256 amount) external onlyAdmin(){
+    function batchMint(address addr, uint256 amount) external onlyRegulation(){
         for(uint i=0; i<amount; i++){
             _mint(addr, index);
             index++;

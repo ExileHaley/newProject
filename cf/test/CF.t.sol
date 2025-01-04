@@ -43,7 +43,7 @@ contract CFTest is Test{
 
         vm.startPrank(cfReceiver);
 
-        cf = new CF(marketing, regulation, cfReceiver);
+        cf = new CF(marketing, cfReceiver);
 
         NFTStaking nftStakingImpl = new NFTStaking();
         // 使用ERC1967代理合约
@@ -53,7 +53,8 @@ contract CFTest is Test{
         );
         nftStaking = NFTStaking(payable(nftStakingProxy));
 
-        cf.setNftStaking(address(nftStaking));
+        cf.setConfig(address(nftStaking), address(nftStaking));
+        
         vm.stopPrank();
         
         console.log("PancakePair address:",cf.pancakePair());
@@ -81,8 +82,8 @@ contract CFTest is Test{
         );
         vm.stopPrank();
 
-        assertEq(cf.balanceOf(address(cf)), 3000e18);
-        assertEq(cf.balanceOf(cf.pancakePair()), 97000e18);
+        assertEq(cf.balanceOf(address(cf)), 49000e18);
+        assertEq(cf.balanceOf(cf.pancakePair()), 51000e18);
         
     }
 
@@ -248,13 +249,4 @@ contract CFTest is Test{
     }
 
 
-    // function test_transferAll() public {
-    //     vm.startPrank(deployUser);
-    //     uint256 amount = cf.balanceOf(deployUser);
-    //     vm.expectRevert("ERC20: transfer amount exceeds balance");
-    //     cf.transfer(walletStore, amount);
-    //     vm.stopPrank();
-    // }
-    
-    
 }

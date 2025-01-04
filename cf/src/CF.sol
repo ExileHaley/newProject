@@ -59,11 +59,9 @@ contract CF is ERC20, Ownable {
 
     constructor(
         address _marketing,
-        address _regulation,
         address _initialRecipient
     ) ERC20("CF", "CF") Ownable(msg.sender) {
         marketing = _marketing;
-        regulation = _regulation;
         pancakePair = IPancakeFactory(pancakeRouter.factory())
             .createPair(address(this), USDT);
             
@@ -82,19 +80,15 @@ contract CF is ERC20, Ownable {
         _;
     }
 
-    function setRegulation(address _newRegulation) external onlyOwner {
+    function setConfig(address _newRegulation, address _nftStaking) external onlyOwner {
         regulation = _newRegulation;
+        nftStaking = _nftStaking;
     }
     
     function setTaxRates(uint256 _buyTaxRate, uint256 _sellTaxRate) external onlyOwner {
         require(_buyTaxRate <= 4900 && _sellTaxRate <= 4900, "Tax rate cannot exceed 30%");
         buyTaxRate = _buyTaxRate;
         sellTaxRate = _sellTaxRate;
-    }
-
-    function setNftStaking(address _nftStaking) external onlyOwner{
-        require(_nftStaking != address(0), "New address cannot be zero address");
-        nftStaking = _nftStaking;
     }
 
     function setTaxExemption(address _address, bool _exempt) external onlyOwner {

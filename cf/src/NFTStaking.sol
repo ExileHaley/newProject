@@ -41,8 +41,6 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     uint256 totalStaking;
     uint256 public perStakingReward;
 
-    uint256[] public tokenIds;
-
     modifier onlyCf() {
         require(msg.sender == cf || owner() == msg.sender, "Permit error.");
         _;
@@ -58,25 +56,11 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         cfArt = _cfArt;
         cf = _cf;
         dead = _dead;
-        multiple = 5;
+        multiple = 3;
     }
 
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
-
-
-    function initTokenIds(uint256 _tokenId) external onlyOwner(){
-        tokenIds.push(_tokenId);
-    }
-
-    function isTokenIdInArray(uint256 _tokenId) public view returns (bool) {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            if (tokenIds[i] == _tokenId) {
-                return true; // 找到元素，返回 true
-            }
-        }
-        return false; // 遍历完未找到，返回 false
-    }
 
 
     function setMultiple(uint8 _multiple) external onlyOwner(){
@@ -84,10 +68,6 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     }
 
     function stakeNFT(uint256[] memory _tokenIds) external {
-
-        for(uint i=0; i<_tokenIds.length; i++){
-            require(!isTokenIdInArray(_tokenIds[i]),"Not permit.");
-        }
 
         User storage user = userInfo[msg.sender];
         user.pending = user.tokenIds.length * perStakingReward + user.pending - user.debt;
@@ -110,12 +90,24 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
 
     function getUserIncome(address _user) public view returns (uint256) {
         User memory user = userInfo[_user];
+
+        // 当前收益
         uint256 _currentIncome = user.tokenIds.length * perStakingReward + user.pending - user.debt;
-        uint256 _maxDeserve = user.tokenIds.length * ((uint256(300e18) + user.cardinality) * multiple) ;
-        // compute remaining and compute truth reward.
-        uint256 _remainingDeserve = user.extracted >= _maxDeserve ? 0 : _maxDeserve - user.extracted;
-        return _currentIncome < _remainingDeserve ? _currentIncome : _remainingDeserve;
+
+        // 每张 NFT 的最大收益计算
+        uint256 _maxPerNFT = (1_000_000e18 + user.cardinality) * 5;
+
+        // 用户的最大收益
+        uint256 _maxDeserve = user.tokenIds.length * _maxPerNFT;
+
+        // 剩余可提取的最大收益
+        uint256 _remainingDeserve = _maxDeserve > user.extracted ? _maxDeserve - user.extracted : 0;
+
+        // 返回当前收益和剩余最大收益中的较小值
+        return _currentIncome > _remainingDeserve ? _remainingDeserve : _currentIncome;
     }
+
+
 
     function getUserInfo(address _user) external view returns(uint256[] memory _tokenIds,uint256 _extracted){
         User memory user = userInfo[_user];

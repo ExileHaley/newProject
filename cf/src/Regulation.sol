@@ -33,7 +33,7 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
     address public admin;
     address public cfArt;
     address public usdt;
-    address public recipient;
+    address public usdtRecipient;
     address public uniswapV2Factory;
     address public uniswapV2Router;
 
@@ -47,32 +47,31 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
 
     function initialize(
         address _admin, 
+        address _cf,
         address _cfArt, 
         address _usdt, 
-        address _recipient, 
+        address _usdtRecipient, 
+        address _dead,
         address _uniswapV2Factory,
-        address _uniswapV2Router) public initializer {
+        address _uniswapV2Router
+    ) public initializer {
         __EIP712_init_unchained("Regulation", "1");
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
         admin = _admin;
+        cf = _cf;
         cfArt = _cfArt;
         usdt = _usdt;
-        recipient = _recipient;
+        usdtRecipient = _usdtRecipient;
+        dead = _dead;
         uniswapV2Factory = _uniswapV2Factory;
         uniswapV2Router = _uniswapV2Router;
     }
 
-    function setConfig(address _cfArt,address _usdt,address _recipient) external onlyOwner(){
-        cfArt = _cfArt;
-        usdt = _usdt;
-        recipient = _recipient;
-    }
 
     function setCf(address _cf) external onlyOwner(){
         cf = _cf;
     }
-
 
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
@@ -81,17 +80,13 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         require(admin == msg.sender || owner() == msg.sender, "NOT_PERTMIT");
     }
 
-    function setAdmin(address _admin) external onlyAdmin(){
-        admin = _admin;
-    }
-
     function deposit(
         string memory orderNum,
         string memory orderMark,
         address token,
         uint256 amount
     ) external override{
-        TransferHelper.safeTransferFrom(token, msg.sender, recipient, amount);
+        TransferHelper.safeTransferFrom(token, msg.sender, usdtRecipient, amount);
         emit Recharge(orderNum, orderMark, token, msg.sender, amount, block.timestamp);
     }
 
@@ -219,4 +214,6 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
     }
 
 }
+
+
 //["001","mint","0x8dfe865f43932415D866D524e4c5Dbece8a7A9c8","0x48f74550535aA6Ab31f62e8f0c00863866C8606b",1000000000,0,10000,28,"0xb0e94d4e3fd77c427ed9bf82cbd5b122f033ac504ce13742025c01e6d5c87f72","0x3117e9bfe7de52a37a3e89c90501a33dbd62874c2ae229ced8ea7ae166dc1632"]
