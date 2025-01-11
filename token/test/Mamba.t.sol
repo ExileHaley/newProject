@@ -100,7 +100,7 @@ contract MambaTest is Test{
         );
         vm.stopPrank();
 
-        assertEq(mamba.balanceOf(address(mamba)), 10000e18);
+        assertEq(mamba.balanceOf(marketing), 10000e18);
         assertEq(mamba.balanceOf(mamba.pancakePair()), 80000e18);
         assertEq(mamba.balanceOf(dead), 10000e18);
 

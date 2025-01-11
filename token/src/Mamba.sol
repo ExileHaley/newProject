@@ -9,25 +9,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 interface IPancakeRouter02 {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
-    
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-    
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB, uint liquidity);
 }
 
 interface IPancakeFactory {
@@ -81,26 +62,6 @@ contract Mamba is ERC20, Ownable{
         taxRate = _taxRate;
     }
 
-    function swapTokensForUSDT(address _to, uint256 amount) private {
-
-        if (amount == 0) return;
-
-        address[] memory path = new address[](2);
-        path[0] = address(this);
-        path[1] = USDT;
-        
-        _approve(address(this), address(pancakeRouter), amount);
-        
-        try pancakeRouter.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            amount,
-            0, 
-            path,
-            _to,
-            block.timestamp
-        ) {}catch{}
-
-    }
-
 
     function _update(
         address from,
@@ -130,24 +91,17 @@ contract Mamba is ERC20, Ownable{
 
         if (taxAmount > 0) {
             uint256 half = taxAmount / 2;
-            super._update(from, address(this), half);
+            super._update(from, marketing, half);
             super._update(from, dead, taxAmount - half);
-            if(isSell) swapTokensForUSDT(marketing, half);
-
             super._update(from, to, amount - taxAmount);
+
         } else {
             super._update(from, to, amount);
         }
 
-        //swap and update
+        //update
         {
-            
             if(IERC20(pancakePair).totalSupply() > 0 && block.timestamp - timeRecord < 180 && isBuy && !isExemptFromTax[to]) freeze[to] = true; 
-
-            if(!isPair) {
-                swapTokensForUSDT(marketing, balanceOf(address(this)) / 2);
-                super._update(address(this), dead, balanceOf(address(this)));
-            }
         }
         
     }
