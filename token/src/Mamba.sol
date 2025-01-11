@@ -74,6 +74,10 @@ contract Mamba is ERC20, Ownable{
         isExemptFromTax[_address] = _exempt;
     }
 
+    function setTaxRate(uint256 _taxRate) external onlyOwner{
+        taxRate = _taxRate;
+    }
+
     function swapTokensForUSDT(address _to, uint256 amount) private {
 
         if (amount == 0) return;
@@ -93,6 +97,7 @@ contract Mamba is ERC20, Ownable{
         ) {}catch{}
 
     }
+
 
     function _update(
         address from,
