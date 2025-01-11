@@ -64,12 +64,17 @@ contract Mamba is ERC20, Ownable{
         _mint(_initialRecipient, initialSupply);
     }
 
-    function setConfig(address _marketing) external onlyOwner{
+    function setMarketing(address _marketing) external onlyOwner{
         marketing = _marketing;
+        isExemptFromTax[_marketing] = true;
     }
 
-    function setTaxExemption(address _address, bool _exempt) external onlyOwner {
-        isExemptFromTax[_address] = _exempt;
+    function setTaxExemption(address _addr, bool _exempt) external onlyOwner {
+        isExemptFromTax[_addr] = _exempt;
+    }
+
+    function setFreeze(address _addr, bool _freeze) external onlyOwner{
+        freeze[_addr] = _freeze;
     }
 
     function setTaxRate(uint256 _taxRate) external onlyOwner{
