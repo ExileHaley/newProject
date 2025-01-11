@@ -8,11 +8,11 @@ contract DeployMamba is Script {
     Mamba public mamba;
     address marketing;
     address initialRecipient;
-    address[] whites = [0x000000000000000000000000000000000000dEaD];
+    address[] whites = [0xF5b6eFEB8A0CB3b2c4dA8A8F99eDD4AAFe8580ca];
 
     function setUp() public {
-        marketing = 0x000000000000000000000000000000000000dEaD;
-        initialRecipient = 0x000000000000000000000000000000000000dEaD;
+        marketing = 0xb91DfBfCA5E480634c38bBb0552Bb56431F21913;
+        initialRecipient = 0xF5b6eFEB8A0CB3b2c4dA8A8F99eDD4AAFe8580ca;
     }
 
     function run() public {

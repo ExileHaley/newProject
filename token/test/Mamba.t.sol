@@ -128,6 +128,7 @@ contract MambaTest is Test{
 
         assertEq(mamba.freeze(user), true);
         assertEq(mamba.freeze(mamba.pancakePair()), false);
+        assertEq(mamba.freeze(uniswapV2Router), false);
         assertEq(mamba.timeRecord(), block.timestamp);
         console.log("Dead address balance:", mamba.balanceOf(dead));
         console.log("Mamba address balance:", mamba.balanceOf(address(mamba)));
@@ -155,6 +156,7 @@ contract MambaTest is Test{
 
         assertEq(mamba.freeze(whiteAddr), false);
         assertEq(mamba.freeze(mamba.pancakePair()), false);
+        assertEq(mamba.freeze(uniswapV2Router), false);
         assertEq(mamba.timeRecord(), block.timestamp);
         console.log("Dead address balance:", mamba.balanceOf(dead));
         console.log("Mamba address balance:", mamba.balanceOf(address(mamba)));
@@ -199,6 +201,7 @@ contract MambaTest is Test{
 
         assertEq(mamba.freeze(user), false);
         assertEq(mamba.freeze(mamba.pancakePair()), false);
+        assertEq(mamba.freeze(uniswapV2Router), false);
         assertEq(mamba.timeRecord(), block.timestamp);
         console.log("No white sell dead balance:", mamba.balanceOf(dead));
     }
@@ -225,6 +228,7 @@ contract MambaTest is Test{
         vm.stopPrank();
 
         assertEq(mamba.freeze(whiteAddr), false);
+        assertEq(mamba.freeze(uniswapV2Router), false);
         assertEq(mamba.freeze(mamba.pancakePair()), false);
         assertEq(mamba.timeRecord(), block.timestamp);
         console.log("white sell dead balance:", mamba.balanceOf(dead));

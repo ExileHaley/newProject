@@ -10,6 +10,6 @@ $ forge install openzeppelin/openzeppelin-contracts --no-commit
 
 ### deploy
 ```shell
-$ forge script script/DeployManba.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
+$ forge script script/DeployMamba.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 

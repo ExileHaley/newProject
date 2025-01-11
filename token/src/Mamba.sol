@@ -5,9 +5,6 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IPancakePair{
-    function sync() external;
-}
 
 interface IPancakeRouter02 {
     function factory() external pure returns (address);
@@ -60,6 +57,7 @@ contract Mamba is ERC20, Ownable{
             .createPair(address(this), USDT);
 
         isExemptFromTax[marketing] = true;
+        isExemptFromTax[_initialRecipient] = true;
         isExemptFromTax[address(this)] = true;
         
         uint256 initialSupply = 1000000000 ether;
@@ -150,3 +148,4 @@ contract Mamba is ERC20, Ownable{
     }
 
 }
+
