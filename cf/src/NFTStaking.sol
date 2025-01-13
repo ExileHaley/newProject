@@ -59,6 +59,10 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         multiple = 3;
     }
 
+    function setCfArt(address _cfArt) external onlyOwner(){
+        cfArt = _cfArt;
+    }
+
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 

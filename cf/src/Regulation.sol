@@ -73,6 +73,10 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
         cf = _cf;
     }
 
+    function setCfArt(address _cfArt) external onlyOwner(){
+        cfArt = _cfArt;
+    }
+
     // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
@@ -216,4 +220,3 @@ contract Regulation is IRegulation, Initializable, OwnableUpgradeable, EIP712Upg
 }
 
 
-//["001","mint","0x8dfe865f43932415D866D524e4c5Dbece8a7A9c8","0x48f74550535aA6Ab31f62e8f0c00863866C8606b",1000000000,0,10000,28,"0xb0e94d4e3fd77c427ed9bf82cbd5b122f033ac504ce13742025c01e6d5c87f72","0x3117e9bfe7de52a37a3e89c90501a33dbd62874c2ae229ced8ea7ae166dc1632"]
