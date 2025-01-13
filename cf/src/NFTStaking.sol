@@ -34,8 +34,8 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
     }
 
     mapping(address => User) userInfo;
-    address cfArt;
-    address cf;
+    address public cfArt;
+    address public cf;
     address dead;
     uint8   public multiple;
     uint256 totalStaking;
