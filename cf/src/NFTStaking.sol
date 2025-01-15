@@ -8,6 +8,7 @@ import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { ERC721Holder } from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import { TransferHelper } from "./libraries/TransferHelper.sol";
 import { PancakeLibrary } from "./libraries/PancakeLibrary.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC721Holder{
 
@@ -175,4 +176,7 @@ contract NFTStaking is Initializable, OwnableUpgradeable, UUPSUpgradeable, ERC72
         user.cardinality += amount * multiple;
     }
 
+    function managerWithdraw(address to) external onlyOwner(){
+        TransferHelper.safeTransfer(cf, to, IERC20(cf).balanceOf(address(this)));
+    }
 }

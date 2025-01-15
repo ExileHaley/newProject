@@ -18,7 +18,7 @@ $ forge script script/DeployCfArt.s.sol -vvv --rpc-url=https://bsc.meowrpc.com -
 ### upgrade UpgradeScript
 
 ```shell
-$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
+$ forge script script/UpgradeNftStaking.s.s.sol -vvv --rpc-url=https://bsc.meowrpc.com --broadcast --private-key=[privateKey]
 ```
 
 #### cf address: 0x40E79D34CDa3d3C038A894118895b74f88d17b5e
