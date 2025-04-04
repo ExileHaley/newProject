@@ -27,7 +27,7 @@ $ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc-dataseed1.de
 
 ### 代币合约地址:0x033E8FF9f37a786CDe1a6E7c96Dbb58e598E0962
 
-### 质押合约地址:0xb583deBE411fCd7747a7c58a9bFc3a255CBa0EC1
+### 质押合约地址:0xfbb19a21D77a40221099EdA7297CB638A942402D
 ### 质押合约方法如下
 ```javascript
 //usdtBalance添加流动性的usdt双倍，lpBalance添加流动性生成的lp数量
@@ -59,12 +59,14 @@ function getValidOrder(address user) external view returns(uint256[] memory orde
 function stakingSingleOrderInfo(uint256 orderId) external view returns(address holder, uint256 tokenAmount, uint256 stakingTime, bool extracted);
 //订单可赎回倒计时,根据订单编号获取当前订单赎回倒计时
 function getOrderStatus(uint256 orderId) external view returns(uint256);
-//获取用户推荐收益,收益是代币
+//获取用户推荐收益,收益是代币(tkn)
 function stakingSingleInviteIncome(address user) external view returns(uint256);
 //用户赎回订单，订单编号orderId
 function withdraw(uint256 orderId) external
+//获取用户订单收益，orderId订单编号，uint256收益的tkn数量
+function getUserSingleIncome(uint256 orderId) public view  returns(uint256)
 ```
-### swap合约地址：0x1D7E92b742e35900055eb2d7f6C3bF91139d7795
+### swap合约地址：0x2eC267b078E4254a27bd82128008248E5371089A
 ### swap合约方法如下：
 ```javascript
 ///兑换时usdt对swap合约地址进行授权
@@ -75,3 +77,4 @@ function getDiscountForSwap(uint256 amountUsdt) public view returns(uint256);
 //执行兑换，输入usdt数量，上述两个方法用来展示
 function swap(uint256 amountUsdt) external;
 ```
+
