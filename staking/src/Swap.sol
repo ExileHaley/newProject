@@ -8,8 +8,8 @@ import {UniswapV2Library} from "./library/UniswapV2Library.sol";
 contract Swap is Ownable{
     address public constant uniswapV2Factory = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
     address usdt = 0x55d398326f99059fF775485246999027B3197955;
-    address token;
-    address recipient;
+    address public token;
+    address public recipient;
     
 
     constructor(address _token, address _recipient)Ownable(msg.sender){

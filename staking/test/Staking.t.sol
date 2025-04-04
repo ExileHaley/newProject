@@ -26,7 +26,7 @@ contract StakingTest is Test{
         vm.selectFork(mainnetFork);
         //初始化地址
         {
-            token = Token(0x3286be58892f44a3539e72f91c5C54889e528B6B);
+            token = Token(0x033E8FF9f37a786CDe1a6E7c96Dbb58e598E0962);
             usdt = address(0x55d398326f99059fF775485246999027B3197955);
             uniswapV2Factory = address(0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73);
             uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);
