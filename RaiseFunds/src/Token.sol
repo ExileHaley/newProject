@@ -43,7 +43,9 @@ contract Token is ERC20, Ownable{
         address _lpDividend,
         address _nodeDividend
     )ERC20(_name, _symbol)Ownable(msg.sender){
-        _mint(_initialRecipient, 1000000000 * 10 ** decimals());
+        uint256 initialSupply = 13500000000 * 10 ** decimals();
+        _mint(_initialRecipient, initialSupply);
+        _burn(_initialRecipient, initialSupply / 2);
         pancakePair = IPancakeFactory(pancakeRouter.factory())
             .createPair(address(this), pancakeRouter.WETH());
         exceedTaxWallet = _exceedTaxWallet;

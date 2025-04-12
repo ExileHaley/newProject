@@ -17,22 +17,27 @@ contract DeployScript is Script{
     //address of liquidity contract
     address public lockOwner;
     address public bnbRecipient;
+//     LP分红地址：0x71024C493C2C02E081aC2cD6956403FDB61B1536
+// 代币接收地址：0xF75F812e37846EDDE1D70f8Ed0eb8a35D9bd10e6
+// 节点分红地址：0xd99291831DfB88aDE6f8bd977e92Af86c3536F91
+// 手续费超出接收地址：0x4A9A00b191D0067E5eC4F476843f6F688EE5bf25
+// BNB接收地址：0x01BB9Ce77c9D3Fd6C320CCFc56BDF3DD59E7936E
 
     function setUp() public {
-        initialRecipient = address(0x000000000000000000000000000000000000dEaD);
-        exceedTaxWallet = address(0x000000000000000000000000000000000000dEaD);
-        lpDividend = address(0x000000000000000000000000000000000000dEaD);
-        nodeDividend = address(0x000000000000000000000000000000000000dEaD);
+        initialRecipient = address(0xF75F812e37846EDDE1D70f8Ed0eb8a35D9bd10e6);
+        exceedTaxWallet = address(0x4A9A00b191D0067E5eC4F476843f6F688EE5bf25);
+        lpDividend = address(0x71024C493C2C02E081aC2cD6956403FDB61B1536);
+        nodeDividend = address(0xd99291831DfB88aDE6f8bd977e92Af86c3536F91);
 
-        lockOwner = address(0x000000000000000000000000000000000000dEaD);
-        bnbRecipient = address(0x000000000000000000000000000000000000dEaD);
+        lockOwner = address(0x8a03078743E4B98b28F70e5A0F590B4BcEd85c1d);
+        bnbRecipient = address(0x01BB9Ce77c9D3Fd6C320CCFc56BDF3DD59E7936E);
     }
 
     function run() public {
         vm.startBroadcast();
         //部署代币
         {
-            token = new Token("Token", "TKN", initialRecipient, exceedTaxWallet, lpDividend, nodeDividend);
+            token = new Token("EAC", "EAC", initialRecipient, exceedTaxWallet, lpDividend, nodeDividend);
         }
 
         //部署锁仓合约
