@@ -18,7 +18,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 $ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
 ```
 
-
+### abi:./out/LockLiquidity.sol/LockLiquidity.json
 ### token合约地址:0x91eAE0e7e8389757C077159A743269A1024206C8
 ### lp合约地址:0x83978c4d2cD2E9B4515D18cf49e0BD2dab5be49e
 ### liquidity合约地址:0xD210912f7e50b0EDf9071D6425752e4522f672A2
