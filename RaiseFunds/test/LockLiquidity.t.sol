@@ -21,7 +21,6 @@ contract LockLiquidityTest is Test{
 
     address public initialRecipient;
     address public exceedTaxWallet;
-    address public lpDividend;
     address public nodeDividend;
     address public dead;
 
@@ -44,7 +43,6 @@ contract LockLiquidityTest is Test{
             user = address(0x3);
             initialRecipient = address(0x4);
             exceedTaxWallet = address(0x5);
-            lpDividend = address(0x6);
             nodeDividend = address(0x7);
             bnbRecipient = address(0x8);
         }
@@ -53,7 +51,7 @@ contract LockLiquidityTest is Test{
         vm.startPrank(owner);
         //部署代币合约
         {
-            token = new Token("Token", "TKN", initialRecipient, exceedTaxWallet, lpDividend, nodeDividend);
+            token = new Token("Token", "TKN", initialRecipient, exceedTaxWallet, nodeDividend);
         }
         //部署liquidity合约
         {

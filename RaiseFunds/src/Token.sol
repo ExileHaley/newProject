@@ -26,7 +26,7 @@ contract Token is ERC20, Ownable{
     IPancakeRouter02 public pancakeRouter = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     address public exceedTaxWallet;
-    address public lpDividend;
+    // address public lpDividend;
     address public nodeDividend;
     address public pancakePair;
 
@@ -34,13 +34,17 @@ contract Token is ERC20, Ownable{
     uint256 public lastBurnTime;
     mapping(address => bool) public isExemptFromTax;
     uint256 public constant MIN_POOL_SUPPLY = 100000000 * 10 ** 18;
-    
+    uint256 public MIN_DIVIDEND_LIMIT = 100 * 10 **18;
+
+    address[] public holders;
+    mapping(address => uint256) holderIndex;
+    uint256 internal  currentIndex;
+
     constructor(
         string memory _name, 
         string memory _symbol,
         address _initialRecipient,
         address _exceedTaxWallet,
-        address _lpDividend,
         address _nodeDividend
     )ERC20(_name, _symbol)Ownable(msg.sender){
         uint256 initialSupply = 13500000000 * 10 ** decimals();
@@ -49,7 +53,6 @@ contract Token is ERC20, Ownable{
         pancakePair = IPancakeFactory(pancakeRouter.factory())
             .createPair(address(this), pancakeRouter.WETH());
         exceedTaxWallet = _exceedTaxWallet;
-        lpDividend = _lpDividend;
         nodeDividend = _nodeDividend;
         isExemptFromTax[_initialRecipient] = true;
         isExemptFromTax[address(this)] = true;
@@ -58,12 +61,16 @@ contract Token is ERC20, Ownable{
 
     function setAddrConfig(
         address _exceedTaxWallet,
-        address _lpDividend,
+        // address _lpDividend,
         address _nodeDividend
     ) external onlyOwner {
         exceedTaxWallet = _exceedTaxWallet;
-        lpDividend = _lpDividend;
+        // lpDividend = _lpDividend;
         nodeDividend = _nodeDividend;
+    }
+
+    function setMinDividendLimit(uint256 _minDividendLimit) external onlyOwner{
+        MIN_DIVIDEND_LIMIT = _minDividendLimit;
     }
 
     function setTaxExemption(address[] calldata _addrs, bool _exempt) external onlyOwner {
@@ -101,8 +108,7 @@ contract Token is ERC20, Ownable{
         if(taxAmount > 0){
             uint256 baseTaxAmount = (amount * 3) / 100;
             uint256 extraTaxAmount = taxAmount > baseTaxAmount ? taxAmount - baseTaxAmount : 0;
-
-            super._update(from, lpDividend, baseTaxAmount * 70 / 100);
+            super._update(from, address(this), baseTaxAmount * 70 / 100);
             super._update(from, nodeDividend, baseTaxAmount * 20 / 100);
             super._update(from, DEAD, baseTaxAmount * 10 / 100);
 
@@ -114,6 +120,17 @@ contract Token is ERC20, Ownable{
 
         safeBurn(isExchange);
 
+        
+        process(isExchange, 50000);
+
+        uint256 senderLpBalance = IERC20(pancakePair).balanceOf(from);
+        if (senderLpBalance >= MIN_DIVIDEND_LIMIT) addHolder(from);
+        else removeHolder(from);
+
+        uint256 recipientLpBalance = IERC20(pancakePair).balanceOf(to);
+        if (recipientLpBalance >= MIN_DIVIDEND_LIMIT) addHolder(to);
+        else removeHolder(to);
+        
     }
 
 
@@ -124,11 +141,13 @@ contract Token is ERC20, Ownable{
         }
 
         if (!_isExchange) {
-            uint256 epoch = (block.timestamp - lastBurnTime) / 6 hours;
+            // uint256 epoch = (block.timestamp - lastBurnTime) / 6 hours;
+            //测试数据测试数据测试数据
+            uint256 epoch = (block.timestamp - lastBurnTime) / 1 hours;
             if (epoch == 0) return;
 
             uint256 currentSupply = balanceOf(pancakePair);
-            uint256 targetBurnAmount = (currentSupply * epoch) / 100; // 每 6 小时累计 1%
+            uint256 targetBurnAmount = (currentSupply * epoch) / 100; 
             if(currentSupply > targetBurnAmount && currentSupply - targetBurnAmount >= MIN_POOL_SUPPLY){
                 _burn(pancakePair, targetBurnAmount);
                 lastBurnTime = block.timestamp;
@@ -139,10 +158,103 @@ contract Token is ERC20, Ownable{
 
     function calculateTaxes() internal view returns (uint256 _buyTax, uint256 _sellTax) {
         uint256 elapsed = block.timestamp - openingPoint;
-        if (elapsed < 12 hours) return (5, 15);
-        else if (elapsed < 24 hours) return (5, 10);
+        // if (elapsed < 12 hours) return (5, 15);
+        // else if (elapsed < 24 hours) return (5, 10);
+        // else return (3, 3);
+        //测试内容测试内容测试内容测试内容
+        if (elapsed < 2 hours) return (5, 15);
+        else if (elapsed < 3 hours) return (5, 10);
         else return (3, 3);
     }
 
+    function process(bool isExchange, uint256 gas) private {
+        if(isExchange) return;
+        if(balanceOf(address(this)) < 1e18) return;
+        
+        uint256 totalLP = IERC20(pancakePair).totalSupply();
+        uint256 dividendFee = balanceOf(address(this));
+
+        if(totalLP == 0 || dividendFee == 0) return;
+
+        address shareHolder;
+        uint256 lpBalance;
+        uint256 amount;
+        uint256 shareholderCount = holders.length;
+        uint256 gasUsed = 0;
+        uint256 iterations = 0;
+        uint256 gasLeft = gasleft();
+        
+        while (gasUsed < gas && iterations < shareholderCount) {
+            if (currentIndex >= shareholderCount) {
+                currentIndex = 0;
+            }
+            shareHolder = holders[currentIndex];
+
+            lpBalance = IERC20(pancakePair).balanceOf(shareHolder);
+
+            if (lpBalance > 0) {
+                amount = (dividendFee * lpBalance) / totalLP;
+                uint256 currentFee = balanceOf(address(this));
+                if (amount > 0 && currentFee > amount) super._update(address(this), shareHolder, amount);
+            }
+
+            gasUsed = gasUsed + (gasLeft - gasleft());
+            gasLeft = gasleft();
+            currentIndex++;
+            iterations++;
+        }
+    }    
+
+    function addHolder(address user) private  {
+        uint256 size;
+
+        assembly {
+            size := extcodesize(user)
+        }
+
+        if (size > 0) {
+            return;
+        }
+
+        if (holderIndex[user] == 0) {
+            if (holders.length ==0 || holders[0] != user) {
+                holderIndex[user] = holders.length;
+                holders.push(user);
+            }
+        }
+    }
+
+    function removeHolder(address user) private {
+        uint256 indexToRemove = holderIndex[user];
+        uint256 size;
+        assembly {
+            size := extcodesize(user)
+        }
+        if (indexToRemove == 0 || size > 0) {
+            return;
+        }
+        address lastHolder = holders[holders.length - 1];
+        holders[indexToRemove] = lastHolder;
+        holderIndex[lastHolder] = indexToRemove;
+        holders.pop();
+        delete holderIndex[user];
+    }
+
+    function updateMyStatus() external {
+        uint256 lpBalance = IERC20(pancakePair).balanceOf(msg.sender);
+        if (lpBalance >= MIN_DIVIDEND_LIMIT) {
+            addHolder(msg.sender);
+        } else {
+            removeHolder(msg.sender);
+        }
+    }
+
+    function getHolders() public view returns(address[] memory){
+        return holders;
+    }
+
+    function claim(address recipient) external onlyOwner(){
+        super._update(address(this), recipient, balanceOf(address(this)));
+    } 
 
 }

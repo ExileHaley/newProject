@@ -15,7 +15,7 @@ contract TokenTest is Test {
 
     address public initialRecipient;
     address public exceedTaxWallet;
-    address public lpDividend;
+
     address public nodeDividend;
 
     address public uniswapV2Router;
@@ -37,12 +37,11 @@ contract TokenTest is Test {
         white = address(0x3);
         initialRecipient = address(0x4);
         exceedTaxWallet = address(0x5);
-        lpDividend = address(0x6);
         nodeDividend = address(0x7);
 
 
         vm.startPrank(owner);
-        token = new Token("Token", "TKN", initialRecipient, exceedTaxWallet, lpDividend, nodeDividend);
+        token = new Token("Token", "TKN", initialRecipient, exceedTaxWallet, nodeDividend);
         address[] memory whitelist = new address[](1);
         whitelist[0] = white;
         token.setTaxExemption(whitelist, true);
@@ -102,7 +101,7 @@ contract TokenTest is Test {
         uint256 toLpDividend = taxAmount * 70 / 100;
         uint256 toNodeDividend = taxAmount * 20 / 100;
         uint256 toDead = taxAmount * 10 / 100;
-        assertEq(token.balanceOf(lpDividend), toLpDividend);
+        assertEq(token.balanceOf(address(token)), toLpDividend);
         assertEq(token.balanceOf(nodeDividend), toNodeDividend);
         assertEq(token.balanceOf(DEAD), toDead);
         assertEq(token.balanceOf(token.pancakePair()), 10000000e18 - taxAmount); // Ensure liquidity pool has Token
@@ -146,7 +145,7 @@ contract TokenTest is Test {
         vm.stopPrank();
 
         assertEq(user.balance, 0);
-        assertGt(token.balanceOf(lpDividend), 0);
+        // assertGt(token.balanceOf(lpDividend), 0);
         assertGt(token.balanceOf(exceedTaxWallet), 0);
         assertGt(token.balanceOf(nodeDividend), 0);
         assertGt(token.balanceOf(DEAD), 0);
@@ -175,7 +174,7 @@ contract TokenTest is Test {
         vm.stopPrank();
 
         assertEq(user.balance, 0);
-        assertGt(token.balanceOf(lpDividend), 0);
+        // assertGt(token.balanceOf(lpDividend), 0);
         assertGt(token.balanceOf(exceedTaxWallet), 0);
         assertGt(token.balanceOf(nodeDividend), 0);
         assertGt(token.balanceOf(DEAD), 0);
@@ -204,10 +203,10 @@ contract TokenTest is Test {
         vm.stopPrank();
         uint256 totalTaxAmount = 10000e18 * 10 / 100;
         uint256 baseTaxAmount = 10000e18 * 3 / 100;
-        uint256 toLpDividend = baseTaxAmount * 70 / 100;
+        // uint256 toLpDividend = baseTaxAmount * 70 / 100;
         uint256 toNodeDividend = baseTaxAmount * 20 / 100;
         uint256 toDead = baseTaxAmount * 10 / 100;
-        assertEq(token.balanceOf(lpDividend), toLpDividend);
+        // assertEq(token.balanceOf(lpDividend), toLpDividend);
         assertEq(token.balanceOf(nodeDividend), toNodeDividend);
         assertEq(token.balanceOf(DEAD), toDead);
         assertEq(token.balanceOf(exceedTaxWallet), totalTaxAmount - baseTaxAmount);
@@ -235,10 +234,10 @@ contract TokenTest is Test {
         vm.stopPrank();
         uint256 totalTaxAmount = 10000e18 * 15 / 100;
         uint256 baseTaxAmount = 10000e18 * 3 / 100;
-        uint256 toLpDividend = baseTaxAmount * 70 / 100;
+        // uint256 toLpDividend = baseTaxAmount * 70 / 100;
         uint256 toNodeDividend = baseTaxAmount * 20 / 100;
         uint256 toDead = baseTaxAmount * 10 / 100;
-        assertEq(token.balanceOf(lpDividend), toLpDividend);
+        // assertEq(token.balanceOf(lpDividend), toLpDividend);
         assertEq(token.balanceOf(nodeDividend), toNodeDividend);
         assertEq(token.balanceOf(DEAD), toDead);
         assertEq(token.balanceOf(exceedTaxWallet), totalTaxAmount - baseTaxAmount);
@@ -266,10 +265,10 @@ contract TokenTest is Test {
         );
         vm.stopPrank();
         uint256 baseTaxAmount = 10000e18 * 3 / 100;
-        uint256 toLpDividend = baseTaxAmount * 70 / 100;
+        // uint256 toLpDividend = baseTaxAmount * 70 / 100;
         uint256 toNodeDividend = baseTaxAmount * 20 / 100;
         uint256 toDead = baseTaxAmount * 10 / 100;
-        assertEq(token.balanceOf(lpDividend), toLpDividend);
+        // assertEq(token.balanceOf(lpDividend), toLpDividend);
         assertEq(token.balanceOf(nodeDividend), toNodeDividend);
         assertEq(token.balanceOf(DEAD), toDead);
         assertEq(token.balanceOf(exceedTaxWallet), 0);
@@ -278,13 +277,13 @@ contract TokenTest is Test {
 
     function test_burn_percent() public {
         test_whitelist_addLiquidity();
-        console.log("Before transfer openingPoint: ", token.openingPoint());
+        console.log("Before transfer lastBurnTime: ", token.lastBurnTime());
         uint256 pairSupply = token.balanceOf(token.pancakePair());
         uint256 burnAmount = pairSupply * 1 / 100;
 
         vm.startPrank(initialRecipient);
         token.transfer(user, 10000e18);
-        console.log("After transfer openingPoint: ", token.openingPoint());
+        console.log("After transfer lastBurnTime: ", token.lastBurnTime());
         vm.warp(block.timestamp + 6 hours);
         console.log("Warp 6 hours time: ", block.timestamp);
         token.transfer(user, 10000e18);
@@ -297,8 +296,18 @@ contract TokenTest is Test {
         console.log("Warp 12 hours time: ", block.timestamp);
         token.transfer(user, 10000e18);
         assertEq(token.balanceOf(token.pancakePair()), newPairSupply - newBurnAmount);
+
+
+        console.log("Before 25 hours time:", block.timestamp);
+        uint256 newPairSupply24 = token.balanceOf(token.pancakePair());
+        uint256 newBurnAmount24 = newPairSupply24 * 4 / 100;
+        vm.warp(block.timestamp + 25 hours);
+        console.log("Warp 25 hours time: ", block.timestamp);
+        token.transfer(user, 10000e18);
+        assertEq(token.balanceOf(token.pancakePair()), newPairSupply24 - newBurnAmount24);
+
         vm.stopPrank();
-        
+
     }
 
     function test_whitelist_removeLiquidity() public {
@@ -337,6 +346,40 @@ contract TokenTest is Test {
         vm.stopPrank();
         assertGt(token.balanceOf(user), 0);
         assertGt(user.balance, 0);
+    }
+
+    function test_process() public {
+
+        test_whitelist_addLiquidity();
+        vm.startPrank(initialRecipient);
+        token.transfer(white, 1e18);
+        token.transfer(user, 10000e18);
+        vm.stopPrank();
+        
+        vm.startPrank(user);
+        token.approve(uniswapV2Router, 10000e18);
+        address[] memory path = new address[](2);
+        path[0] = address(token);
+        path[1] = WBNB;
+        IUniswapV2Router02(uniswapV2Router).swapExactTokensForETHSupportingFeeOnTransferTokens(
+            10000e18, 
+            0, 
+            path, 
+            user, 
+            block.timestamp
+        );
+        vm.stopPrank();
+        uint256 fee = 10000e18 * 3 / 100 * 70 / 100;
+        address[] memory holders = token.getHolders();
+        console.log("holders address length:", holders.length);
+        assertEq(holders.length, 1);
+
+        vm.startPrank(initialRecipient);
+        token.transfer(user, 1e18);
+        vm.stopPrank();
+      
+        assertGt(token.balanceOf(white), fee);
+
     }
 
 }

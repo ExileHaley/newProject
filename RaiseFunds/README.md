@@ -19,9 +19,9 @@ $ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.
 ```
 
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0x91eAE0e7e8389757C077159A743269A1024206C8
-### lp合约地址:0x83978c4d2cD2E9B4515D18cf49e0BD2dab5be49e
-### liquidity合约地址:0xD210912f7e50b0EDf9071D6425752e4522f672A2
+### token合约地址:0xa1b3EBDFAc9d96624C9898E90F8De2A613e6d271
+### lp合约地址:0x062E703a4f3731740C038E1656D8391c8D26AB52
+### liquidity合约地址:0xa7fDd11B63C9Ab78cc0357F6BbeF2175dd07BBa6
 ### liquidity合约方法:
 ```javascript
 //获取用户lp当前已解锁的数量，user用户钱包地址，unlockedAmount已解锁数量，有18位精度
