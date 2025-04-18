@@ -51,16 +51,12 @@ contract LockLiquidity is Initializable, OwnableUpgradeable, UUPSUpgradeable, Re
 
     function getUnlockedAmount(address user) public view returns(uint256 unlockedAmount){
         Holder memory holder = holderInfo[user];
-
-        // if(block.timestamp >= holder.lockTime + 30 days) unlockedAmount = holder.liquidityAmount;
-        //测试数据测试数据测试数据
-        if(block.timestamp >= holder.lockTime + 1 hours) unlockedAmount = holder.liquidityAmount;
+        if(block.timestamp >= holder.lockTime + 30 days) unlockedAmount = holder.liquidityAmount;
     }
 
     function getExpirationTime(address user) public view returns(uint256 expirationTime){
         Holder memory holder = holderInfo[user];
-        // if(block.timestamp < holder.lockTime + 30 days) expirationTime = holder.lockTime + 30 days - block.timestamp;
-        //测试数据测试数据
+        if(block.timestamp < holder.lockTime + 30 days) expirationTime = holder.lockTime + 30 days - block.timestamp;
         if(block.timestamp < holder.lockTime + 1 hours) expirationTime = holder.lockTime + 1 hours - block.timestamp;
     }
 

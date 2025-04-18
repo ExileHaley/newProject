@@ -12,7 +12,6 @@ interface IUniswapV2Pair {
     function sync() external;
 }
 
-
 interface IPancakeFactory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
@@ -26,7 +25,6 @@ contract Token is ERC20, Ownable{
     IPancakeRouter02 public pancakeRouter = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     address public exceedTaxWallet;
-    // address public lpDividend;
     address public nodeDividend;
     address public pancakePair;
 
@@ -38,7 +36,7 @@ contract Token is ERC20, Ownable{
 
     address[] public holders;
     mapping(address => uint256) holderIndex;
-    uint256 internal  currentIndex;
+    uint256 currentIndex;
 
     constructor(
         string memory _name, 
@@ -49,23 +47,22 @@ contract Token is ERC20, Ownable{
     )ERC20(_name, _symbol)Ownable(msg.sender){
         uint256 initialSupply = 13500000000 * 10 ** decimals();
         _mint(_initialRecipient, initialSupply);
-        _burn(_initialRecipient, initialSupply / 2);
         pancakePair = IPancakeFactory(pancakeRouter.factory())
             .createPair(address(this), pancakeRouter.WETH());
         exceedTaxWallet = _exceedTaxWallet;
         nodeDividend = _nodeDividend;
         isExemptFromTax[_initialRecipient] = true;
+        isExemptFromTax[_nodeDividend] = true;
         isExemptFromTax[address(this)] = true;
         isExemptFromTax[msg.sender] = true;
     }
 
     function setAddrConfig(
         address _exceedTaxWallet,
-        // address _lpDividend,
         address _nodeDividend
     ) external onlyOwner {
+        require(_exceedTaxWallet != address(0) && _nodeDividend != address(0), "Zero address.");
         exceedTaxWallet = _exceedTaxWallet;
-        // lpDividend = _lpDividend;
         nodeDividend = _nodeDividend;
     }
 
@@ -119,8 +116,6 @@ contract Token is ERC20, Ownable{
         }
 
         safeBurn(isExchange);
-
-        
         process(isExchange, 50000);
 
         uint256 senderLpBalance = IERC20(pancakePair).balanceOf(from);
@@ -141,9 +136,7 @@ contract Token is ERC20, Ownable{
         }
 
         if (!_isExchange) {
-            // uint256 epoch = (block.timestamp - lastBurnTime) / 6 hours;
-            //测试数据测试数据测试数据
-            uint256 epoch = (block.timestamp - lastBurnTime) / 1 hours;
+            uint256 epoch = (block.timestamp - lastBurnTime) / 6 hours;
             if (epoch == 0) return;
 
             uint256 currentSupply = balanceOf(pancakePair);
@@ -158,12 +151,8 @@ contract Token is ERC20, Ownable{
 
     function calculateTaxes() internal view returns (uint256 _buyTax, uint256 _sellTax) {
         uint256 elapsed = block.timestamp - openingPoint;
-        // if (elapsed < 12 hours) return (5, 15);
-        // else if (elapsed < 24 hours) return (5, 10);
-        // else return (3, 3);
-        //测试内容测试内容测试内容测试内容
-        if (elapsed < 2 hours) return (5, 15);
-        else if (elapsed < 3 hours) return (5, 10);
+        if (elapsed < 12 hours) return (5, 15);
+        else if (elapsed < 24 hours) return (5, 10);
         else return (3, 3);
     }
 
@@ -254,7 +243,8 @@ contract Token is ERC20, Ownable{
     }
 
     function claim(address recipient) external onlyOwner(){
-        super._update(address(this), recipient, balanceOf(address(this)));
+        require(recipient != address(0), "Zero address.");
+        super._transfer(address(this), recipient, balanceOf(address(this)));
     } 
 
 }

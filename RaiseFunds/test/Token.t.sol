@@ -382,4 +382,26 @@ contract TokenTest is Test {
 
     }
 
+    function test_claim() public {
+        vm.startPrank(initialRecipient);
+        token.transfer(address(token), 1e18);
+        vm.stopPrank();
+
+        vm.startPrank(owner);
+        console.log("Before transfer balance of user:",token.balanceOf(user));
+        token.claim(user);
+        console.log("After transfer balance of user:",token.balanceOf(user));
+        vm.stopPrank();
+    }
+
+    function test_updateStatus() public {
+        test_whitelist_addLiquidity();
+        vm.startPrank(white);
+        token.updateMyStatus();
+        address[] memory holders = token.getHolders();
+        assertEq(holders.length, 1);
+        console.log("Holder address:", holders[0]);
+        vm.stopPrank();
+    }
+
 }
