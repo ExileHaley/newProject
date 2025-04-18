@@ -25,7 +25,7 @@ contract TokenTest is Test {
     uint256 mainnetFork;
 
     function setUp() public {
-        mainnetFork = vm.createFork(vm.envString("rpc_url"));
+        mainnetFork = vm.createFork(vm.envString("RPC_URL"));
         vm.selectFork(mainnetFork);
 
         uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);

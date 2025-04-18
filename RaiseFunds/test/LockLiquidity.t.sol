@@ -30,7 +30,7 @@ contract LockLiquidityTest is Test{
     uint256 mainnetFork;
 
     function setUp() public {
-        mainnetFork = vm.createFork(vm.envString("rpc_url"));
+        mainnetFork = vm.createFork(vm.envString("RPC_URL"));
         vm.selectFork(mainnetFork);
         //初始化地址
         {

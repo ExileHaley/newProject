@@ -18,10 +18,58 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 $ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
 ```
 
+### build token constructor
+```shell
+$ cast abi-encode "constructor(string,string,address,address,address)" "EAC" "EAC" 0xcF908559fcDAEb83b8e77A73dA84B1940f1355eC 0x9B8d301A095B4acb9D6ACF4B932D30593Df22521 0xf755948147D98CD9dA1128F3c39e260daC90c522
+
+```
+
+### verify token contract
+```shell
+$ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6 0x3A5B27e7d9340960Ac1326f97e7A2Bac92436Fe2 src/Token.sol:Token  --constructor-args ... --etherscan-api-key AZKEFB6WTYWWZ4987AJ6QWFS6MHC9SUZ9R
+
+```
+
+### check verify token
+```shell
+$ forge verify-check 38qpxzv1eyn5mqzwvpldrtnheyfyururht4nwpkggck2i1zs8u --etherscan-api-key AZKEFB6WTYWWZ4987AJ6QWFS6MHC9SUZ9R --chain-id 56
+
+```
+
+### impl:0x8C28F06F128Ac245abFc7CB7fC0B904B647B8f35
+
+cast abi-encode "initialize(address,address,address,address)" 0x7dB02d7c15d25a14a285F530Aa7387fb4E973d11 0x3A5B27e7d9340960Ac1326f97e7A2Bac92436Fe2 0x8a03078743E4B98b28F70e5A0F590B4BcEd85c1d 0xaC863E374d542880ae8D608204EA25351A62470E
+
+--constructor-args 0x0000000000000000000000007db02d7c15d25a14a285f530aa7387fb4e973d110000000000000000000000003a5b27e7d9340960ac1326f97e7a2bac92436fe20000000000000000000000008a03078743e4b98b28f70e5a0f590b4bced85c1d000000000000000000000000ac863e374d542880ae8d608204ea25351a62470e
+
+
+### verify impl contract
+```shell
+$ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6 0x8C28F06F128Ac245abFc7CB7fC0B904B647B8f35 src/LockLiquidity.sol:LockLiquidity  --etherscan-api-key AZKEFB6WTYWWZ4987AJ6QWFS6MHC9SUZ9R
+
+```
+
+### build proxy constructor
+```shell
+$ 
+```
+
+### verify proxy contract
+```shell
+$ 
+```
+
+### check verify proxy
+```shell
+$ 
+```
+
+
+
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0xa1b3EBDFAc9d96624C9898E90F8De2A613e6d271
-### lp合约地址:0x062E703a4f3731740C038E1656D8391c8D26AB52
-### liquidity合约地址:0xa7fDd11B63C9Ab78cc0357F6BbeF2175dd07BBa6
+### token合约地址:0x3A5B27e7d9340960Ac1326f97e7A2Bac92436Fe2
+### lp合约地址:0x7dB02d7c15d25a14a285F530Aa7387fb4E973d11
+### liquidity合约地址:0x02A54993D121CD1981C28771C00F65bB86A97970
 ### liquidity合约方法:
 ```javascript
 //获取用户lp当前已解锁的数量，user用户钱包地址，unlockedAmount已解锁数量，有18位精度
