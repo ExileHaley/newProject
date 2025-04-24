@@ -49,6 +49,13 @@ contract LockLiquidity is Initializable, OwnableUpgradeable, UUPSUpgradeable, Re
      // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
+    function setAddress(address _token, address _lpToken, address _bnbRecipient, address _lockOwner) external onlyOwner(){
+        token = _token;
+        lpToken = _lpToken;
+        bnbRecipient = _bnbRecipient;
+        lockOwner = _lockOwner;
+    }
+
     function getUnlockedAmount(address user) public view returns(uint256 unlockedAmount){
         Holder memory holder = holderInfo[user];
         if(block.timestamp >= holder.lockTime + 30 days) unlockedAmount = holder.liquidityAmount;

@@ -18,6 +18,11 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 $ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
 ```
 
+### upgrade
+```shell
+$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc-mainnet.public.blastapi.io --broadcast --private-key=[privateKey]
+```
+
 ### build token constructor
 ```shell
 $ cast abi-encode "constructor(string,string,address,address,address)" "EAC" "EAC" 0xcF908559fcDAEb83b8e77A73dA84B1940f1355eC 0x9B8d301A095B4acb9D6ACF4B932D30593Df22521 0xf755948147D98CD9dA1128F3c39e260daC90c522
@@ -67,9 +72,10 @@ $
 
 
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0x3A5B27e7d9340960Ac1326f97e7A2Bac92436Fe2
-### lp合约地址:0x7dB02d7c15d25a14a285F530Aa7387fb4E973d11
+### token合约地址:0x39DEACa23afd484ce707F4eD4179f8f2f03e9E5e
+### lp合约地址:0x61CAD5D284259A03f89761f7747e91b8AFD3Cbb8
 ### liquidity合约地址:0x02A54993D121CD1981C28771C00F65bB86A97970
+
 ### liquidity合约方法:
 ```javascript
 //获取用户lp当前已解锁的数量，user用户钱包地址，unlockedAmount已解锁数量，有18位精度
