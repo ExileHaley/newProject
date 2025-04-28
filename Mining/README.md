@@ -34,6 +34,7 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 ### token地址:0x552BCcB1c2b4f12726433a7d637fF1299200569A
 ### lp地址:0xadB351A69E87b0531AB20B47D74A911EF26ADb59
 ### 挖矿合约地址:0x19b88c96Ccb1f25754174B5E9A71FDA9f6258F0D
+### 挖矿合约ABI:./out/Mining.sol/Mining.json
 ### 首码邀请人地址:0x5E0D2012955cEA355c9efc041c5ec40a6985849b
 
 ### 挖矿合约方法
