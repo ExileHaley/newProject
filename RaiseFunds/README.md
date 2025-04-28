@@ -72,8 +72,8 @@ $
 
 
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0x39DEACa23afd484ce707F4eD4179f8f2f03e9E5e
-### lp合约地址:0x61CAD5D284259A03f89761f7747e91b8AFD3Cbb8
+### token合约地址:0x0bfAf23462b2e7c09B736f7Bc23E1D204d7C2e36
+### lp合约地址:0x7a0DDD808178606FE012eaE68B6Dc1DD6b862955
 ### liquidity合约地址:0x02A54993D121CD1981C28771C00F65bB86A97970
 
 ### liquidity合约方法:
