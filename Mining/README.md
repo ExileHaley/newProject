@@ -98,5 +98,10 @@ function claimOrder(uint256 orderIndex) external;
 //提取邀请获得的奖励，amount传入要提取的token奖励数量
 function claimAward(uint256 amount) external;
 
+//获取用户质押所有有效订单质押的代币总数量
+function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount);
+
+//添加流动性，用户输入代币数量amountToken，然后自动扣除其钱包中的usdt，usdt数量展示通过getQuoteAmount函数获取，返回值不用管，这里token和usdt都需要对挖矿合约进行授权，之前的订单质押需要token对挖矿合约进行授权
+function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount)
 
 ```

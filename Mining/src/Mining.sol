@@ -7,6 +7,8 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
+import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
+import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {UniswapV2Library} from "./libraries/UniswapV2Library.sol";
 import {TransferHelper} from "./libraries/TransferHelper.sol";
 import {IMining} from "./interfaces/IMining.sol";
@@ -104,7 +106,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     function staking(uint256 amountToken) external {
         User storage user = userInfo[msg.sender];
         require(user.inviter != address(0), "Need to bind the inviter address.");
-        require(getQuoteAmount(amountToken) >= 100e18, "At least 100USDT tokens are required.");
+        // require(getQuoteAmount(amountToken) >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
         StakingOrder memory order = StakingOrder({
             holder: msg.sender,
@@ -303,6 +305,90 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
     function getStakingOrders() external view returns (StakingOrder[] memory) {
         return stakingOrders;
+    }
+
+    function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount) {
+        User storage user = userInfo[userAddr];
+        uint256 len = user.stakingOrdersIndexes.length;
+
+        for (uint256 i = 0; i < len; i++) {
+            uint256 idx = user.stakingOrdersIndexes[i];
+            if (!stakingOrderInfo[idx].isExtracted) {
+                totalAmount += stakingOrderInfo[idx].amount;
+            }
+        }
+    }
+
+    modifier ensure(uint deadline) {
+        require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
+        _;
+    }
+
+    /********************************************************pull***********************************************************/
+    // **** ADD LIQUIDITY ****
+    function _addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin
+    ) internal returns (uint amountA, uint amountB) {
+        // create the pair if it doesn't exist yet
+        if (IUniswapV2Factory(uniswapV2Factory).getPair(tokenA, tokenB) == address(0)) {
+            IUniswapV2Factory(uniswapV2Factory).createPair(tokenA, tokenB);
+        }
+        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(uniswapV2Factory, tokenA, tokenB);
+        if (reserveA == 0 && reserveB == 0) {
+            (amountA, amountB) = (amountADesired, amountBDesired);
+        } else {
+            uint amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
+            if (amountBOptimal <= amountBDesired) {
+                require(amountBOptimal >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
+                (amountA, amountB) = (amountADesired, amountBOptimal);
+            } else {
+                uint amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
+                assert(amountAOptimal <= amountADesired);
+                require(amountAOptimal >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
+                (amountA, amountB) = (amountAOptimal, amountBDesired);
+            }
+        }
+    }
+
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) internal ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
+        (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
+        address pair = UniswapV2Library.pairFor(uniswapV2Factory, tokenA, tokenB);
+        TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
+        TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        liquidity = IUniswapV2Pair(pair).mint(to);
+    }
+
+    /********************************************************pull***********************************************************/
+
+    function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount) {
+        uint256 amountUsdt = getQuoteAmount(amountToken);
+
+        (_amountToken, _amountUsdt, _liquidityAmount) = addLiquidity(
+            token, 
+            USDT, 
+            amountToken, 
+            amountUsdt, 
+            0, 
+            0, 
+            msg.sender, 
+            block.timestamp
+        );
+
+
     }
 
 }
