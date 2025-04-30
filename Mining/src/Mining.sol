@@ -400,6 +400,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     }
 
     function removeLiquidity(uint256 _liquidity) external {
+        TransferHelper.safeTransferFrom(lp, msg.sender, address(this), _liquidity);
         IERC20(lp).approve(uniswapV2Router, _liquidity);
         IUniswapV2Router02(uniswapV2Router).removeLiquidity(
             USDT, 
