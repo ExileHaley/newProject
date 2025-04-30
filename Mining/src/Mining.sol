@@ -20,12 +20,14 @@ interface IToken {
 contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, ReentrancyGuard{
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
     address public constant uniswapV2Factory = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
+    address public constant uniswapV2Router = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
     address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
     uint256 public constant STAKE_PERIOD = 2592000;       // 30 天为一期
     uint256 public constant BASE           = 10000;      // 百分比基数
     uint256 public constant REWARD_RATE    = 3000;       // 30% 对应 3000/10000
 
     address public token;
+    address public lp;
     uint256 public index;
     address public initialInviter;
 
@@ -33,10 +35,11 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     mapping(address => User) public userInfo;
     StakingOrder[] public stakingOrders;
     
-    function initialize(address _token, address _initialInviter) public initializer {
+    function initialize(address _token, address _lp, address _initialInviter) public initializer {
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
         token = _token;
+        lp = _lp;
         initialInviter = _initialInviter;
         index = 0;
     }
@@ -81,15 +84,17 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     function getUserInfo(address _user) external view returns(
         address _inviter,
         uint256 _award,
+        uint256 _usdtValue,
         Level _level,
         uint256[] memory _validOrderIndexes,
         uint256[] memory _orderIndexes,
         address[] memory _invitees,
         AwardRecord[] memory _awardRecords
     ) {
-        User storage user = userInfo[_user];
+        User memory user = userInfo[_user];
         _inviter = user.inviter;
         _award = user.award;
+        _usdtValue = user.usdtValue;
         _level = user.level;
         _invitees = user.invitees;
         _awardRecords = user.awardRecords;
@@ -307,7 +312,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         return stakingOrders;
     }
 
-    function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount) {
+    function getUserValidStakingAmount(address userAddr) public view returns (uint256 totalAmount) {
         User storage user = userInfo[userAddr];
         uint256 len = user.stakingOrdersIndexes.length;
 
@@ -317,6 +322,10 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
                 totalAmount += stakingOrderInfo[idx].amount;
             }
         }
+    }
+
+    function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt){
+        return getQuoteAmount(getUserValidStakingAmount(userAddr));
     }
 
     modifier ensure(uint deadline) {
@@ -388,7 +397,25 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
             block.timestamp
         );
 
-
     }
+
+    function removeLiquidity(uint256 _liquidity) external {
+        IERC20(lp).approve(uniswapV2Router, _liquidity);
+        IUniswapV2Router02(uniswapV2Router).removeLiquidity(
+            USDT, 
+            token, 
+            _liquidity, 
+            0, 
+            0, 
+            msg.sender, 
+            block.timestamp
+        );
+        
+    }
+
+    function serchLiquidityBalance(address _user) external view returns(uint256){
+        return IERC20(lp).balanceOf(_user);
+    }
+
 
 }

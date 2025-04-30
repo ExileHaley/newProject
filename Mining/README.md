@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
+$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 ### build token constructor
@@ -31,9 +31,9 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 ```
 
 
-### token地址:0x552BCcB1c2b4f12726433a7d637fF1299200569A
-### lp地址:0xadB351A69E87b0531AB20B47D74A911EF26ADb59
-### 挖矿合约地址:0x19b88c96Ccb1f25754174B5E9A71FDA9f6258F0D
+### token地址:0x04d282ABDFDDB2705B8e9097Caa261DE2D2dC02E
+### lp地址:0xD2969B597471F53099bD22ba7e471e69A8C3F68E
+### 挖矿合约地址:0xc6fE55886ec15d9bcE0F0602769988ea8E133D12
 ### 挖矿合约ABI:./out/Mining.sol/Mining.json
 ### 首码邀请人地址:0x5E0D2012955cEA355c9efc041c5ec40a6985849b
 
@@ -73,6 +73,7 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 function getUserInfo(address _user) external view returns(
         address _inviter,
         uint256 _award,
+        uint256 _usdtValue, //新增字段，表示团队业绩，单位usdt
         Level _level,
         uint256[] memory _validOrderIndexes,
         uint256[] memory _orderIndexes,
@@ -102,6 +103,17 @@ function claimAward(uint256 amount) external;
 function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount);
 
 //添加流动性，用户输入代币数量amountToken，然后自动扣除其钱包中的usdt，usdt数量展示通过getQuoteAmount函数获取，返回值不用管，这里token和usdt都需要对挖矿合约进行授权，之前的订单质押需要token对挖矿合约进行授权
-function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount)
+function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount);
+
+//查询用户的lp余额
+function serchLiquidityBalance(address _user) external view returns(uint256);
+
+//移除流动性，_liquidity流动性lp数量，这里lp要对挖矿合约授权
+function removeLiquidity(uint256 _liquidity) external;
+
+//获取个人业绩，返回值单位usdt
+function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt)
 
 ```
+
+#### 注:getUserInfo返回值新增了一个_usdtValue字段，更新合约地址更新abi

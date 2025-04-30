@@ -28,7 +28,7 @@ contract DeployScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        token = new Token("Name","SYM", initialRecipient, exceedTaxWallet);
+        token = new Token("SMT","SMT", initialRecipient, exceedTaxWallet);
 
         // deploy mining
         {
@@ -38,7 +38,7 @@ contract DeployScript is Script {
                 address(miningImpl), 
                 abi.encodeCall(
                     miningImpl.initialize, 
-                    (address(token), initialInviter)
+                    (address(token), token.pancakePair(), initialInviter)
                 )
             );
             mining = Mining(payable(address(miningProxy))); 

@@ -50,7 +50,7 @@ contract MiningTest is Test, IMining{
                 address(miningImpl), 
                 abi.encodeCall(
                     miningImpl.initialize, 
-                    (address(token), initialInviter)
+                    (address(token), token.pancakePair(), initialInviter)
                 )
             );
             mining = Mining(payable(address(miningProxy))); 
@@ -89,7 +89,7 @@ contract MiningTest is Test, IMining{
         mining.bindInviter(initialInviter);
         vm.stopPrank();
         
-        (address _inviter,,,,,,) = mining.getUserInfo(user);
+        (address _inviter,,,,,,,) = mining.getUserInfo(user);
         assertEq(_inviter, initialInviter);
     }
 
@@ -100,7 +100,7 @@ contract MiningTest is Test, IMining{
         mining.staking(1000e18);
         vm.stopPrank();
         //assert order index
-        (,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
+        (,,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
         assertEq(_validOrderIndexes.length, 1);
         assertEq(_orderIndexes.length, 1);
         assertEq(mining.getStakingOrders().length,1);
@@ -111,7 +111,7 @@ contract MiningTest is Test, IMining{
         assertEq(stakingTime, block.timestamp);
         assertEq(isExtracted, false);
         //assert inviter award
-        (,uint256 _award,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
+        (,uint256 _award,,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
         assertEq(_award, 1000e18 * 10 / 100);
         assertEq(_invitees.length, 1);
         assertEq(_awardRecords.length, 1);
@@ -140,7 +140,7 @@ contract MiningTest is Test, IMining{
         vm.startPrank(user);
         vm.warp(block.timestamp + 30 days);
         mining.claimOrder(0);
-        (,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
+        (,,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
         assertEq(_validOrderIndexes.length, 0);
         assertEq(_orderIndexes.length, 1);
         assertEq(token.balanceOf(user), 1300e18);
@@ -160,7 +160,7 @@ contract MiningTest is Test, IMining{
         vm.startPrank(_user);
         mining.bindInviter(_inviter0);
         vm.stopPrank();
-        (address _inviter,,,,,,) = mining.getUserInfo(_user);
+        (address _inviter,,,,,,,) = mining.getUserInfo(_user);
         assertEq(_inviter, _inviter0);
     }
 
@@ -180,7 +180,7 @@ contract MiningTest is Test, IMining{
         bindInviter(user1, user);
         staking(user1, 1000e18);
 
-        (,uint256 _award,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
+        (,uint256 _award,,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
         assertEq(_award, 1000e18 * 10 / 100);
         assertEq(_invitees.length, 1);
         assertEq(_invitees[0], user);
@@ -220,42 +220,42 @@ contract MiningTest is Test, IMining{
         bindInviter(initialInviter2, initialInviter);
         bindInviter(initialInviter3, initialInviter);
         bindInviter(initialInviter4, initialInviter);
-        (,,,,,address[] memory _invitees,) = mining.getUserInfo(initialInviter);
+        (,,,,,,address[] memory _invitees,) = mining.getUserInfo(initialInviter);
         assertEq(_invitees.length, 0);
         staking(initialInviter0, 1000e18);
         staking(initialInviter1, 1000e18);
         staking(initialInviter2, 1000e18);
         staking(initialInviter3, 1000e18);
         staking(initialInviter4, 1000e18);
-        (,,,,,address[] memory _invitees0,) = mining.getUserInfo(initialInviter);
+        (,,,,,,address[] memory _invitees0,) = mining.getUserInfo(initialInviter);
         assertEq(_invitees0.length, 5);
-        (,uint256 award,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 award,,,,,,) = mining.getUserInfo(initialInviter);
         assertEq(award, 5000e18 * 10 / 100);
 
         //测试层级奖励
         bindInviter(user0, initialInviter);
         staking(user0, 1000e18);
-        (,uint256 awardUser0,,,,address[] memory _inviteesUser0,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser0,,,,,address[] memory _inviteesUser0,) = mining.getUserInfo(initialInviter);
         assertEq(_inviteesUser0.length, 6);
         assertEq(awardUser0, 6000e18 * 10 / 100);
 
         bindInviter(user1, user0);
         staking(user1, 1000e18);
-        (,uint256 awardUser1,,,,address[] memory _inviteesUser1,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser1,,,,,address[] memory _inviteesUser1,) = mining.getUserInfo(initialInviter);
         assertEq(_inviteesUser1.length, 6);
         uint256 awardAfterUser1 = 6000e18 * 10 / 100 + 1000e18 * 5 / 100;
         assertEq(awardUser1, awardAfterUser1);
 
         bindInviter(user2, user1);
         staking(user2, 1000e18);
-        (,uint256 awardUser2,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser2,,,,,,) = mining.getUserInfo(initialInviter);
         uint256 awardAfterUser2 = awardAfterUser1 + 1000e18 * 25 / 1000;
         assertEq(awardUser2, awardAfterUser2);
 
 
         bindInviter(user3, user2);
         staking(user3, 1000e18);
-        (,uint256 awardUser3,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser3,,,,,,) = mining.getUserInfo(initialInviter);
         // console.log("level", uint256(level));
         uint256 awardAfterUser3 = awardAfterUser2 + 1000e18 * 125 / 10000;
         assertEq(awardUser3, awardAfterUser3);
@@ -277,7 +277,7 @@ contract MiningTest is Test, IMining{
         
         bindInviter(user4, initialInviter);
         staking(user4, 1000e18);
-        (,uint256 awardUser4,Level levelAfterUser4,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser4,,Level levelAfterUser4,,,,) = mining.getUserInfo(initialInviter);
         console.log("levelAfterUser4", uint256(levelAfterUser4));
         (,,uint256 usdtValueAfter4,) = mining.userInfo(initialInviter);
         console.log("usdtValue after user4", usdtValueAfter4);
@@ -290,7 +290,7 @@ contract MiningTest is Test, IMining{
 
         bindInviter(user5, initialInviter);
         staking(user5, 1000e18);
-        (,uint256 awardUser5,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser5,,,,,,) = mining.getUserInfo(initialInviter);
  
         uint256 levelAwardAfter5 = levelAwardAfter4 + 1000e18 * 10 / 100 + 1000e18 * 2 / 1000;
         assertEq(awardUser5, levelAwardAfter5);
@@ -321,7 +321,7 @@ contract MiningTest is Test, IMining{
         staking(user6, 10000e18);
         bindInviter(user7, initialInviter);
         staking(user7, 1000e18);
-        (,uint256 awardUser7,Level levelAfterUser7,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser7,,Level levelAfterUser7,,,,) = mining.getUserInfo(initialInviter);
         assertEq(uint256(levelAfterUser7), 1);
         assertEq(awardUser7, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
         console.log("Award After User7", awardUser7);
@@ -329,17 +329,17 @@ contract MiningTest is Test, IMining{
 
         bindInviter(user8, user6);
         staking(user8, 10000e18);
-        (,uint256 awardUser8,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser8,,,,,,) = mining.getUserInfo(initialInviter);
         console.log("Award After User8", awardUser8);
         //1622
 
 
         bindInviter(user9, user6);
         staking(user9, 1000e18);
-        (,uint256 awardUser9,Level levelOfInitialInviter,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser9,,Level levelOfInitialInviter,,,,) = mining.getUserInfo(initialInviter);
         console.log("Award After User9", awardUser9);
         console.log("LevelOfInitialInviter", uint256(levelOfInitialInviter));
-        (,uint256 awardUser9ToUser6,Level levelAfterUser9,,,,) = mining.getUserInfo(user6);
+        (,uint256 awardUser9ToUser6,,Level levelAfterUser9,,,,) = mining.getUserInfo(user6);
         assertEq(uint256(levelAfterUser9), 1);
         assertEq(awardUser9ToUser6, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
         console.log("Award After User9 To User6", awardUser9ToUser6);
@@ -347,11 +347,11 @@ contract MiningTest is Test, IMining{
        
         bindInviter(user10, user6);
         staking(user10, 1000e18);
-        (,uint256 awardUser10,,,,,) = mining.getUserInfo(user6);
+        (,uint256 awardUser10,,,,,,) = mining.getUserInfo(user6);
         uint256 awardAfterUser10ToUser6 = 12000e18 * 10 / 100 + 1000e18 * 4 / 1000;
         assertEq(awardUser10, awardAfterUser10ToUser6);
         
-        (,uint256 awardUser10ToInitialInviter,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser10ToInitialInviter,,,,,,) = mining.getUserInfo(initialInviter);
         console.log("Award After User10 To InitialInviter", awardUser10ToInitialInviter);
 
     }
@@ -375,7 +375,7 @@ contract MiningTest is Test, IMining{
         staking(user11, 50000e18);
         bindInviter(user12, initialInviter);
         staking(user12, 1000e18);
-        (,uint256 awardUser12,Level levelAfterUser12,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser12,,Level levelAfterUser12,,,,) = mining.getUserInfo(initialInviter);
         assertEq(uint256(levelAfterUser12), 2);
         uint256 awardAfterUser12ToInitialInviter = 51000e18 * 10 / 100 + 1000e18 * 4 / 1000;
         assertEq(awardUser12, awardAfterUser12ToInitialInviter);
@@ -383,23 +383,23 @@ contract MiningTest is Test, IMining{
 
         bindInviter(user13, user11);
         staking(user13, 10000e18);
-        (,uint256 awardUser13,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser13,,,,,,) = mining.getUserInfo(initialInviter);
         uint256 awardAfterUser13ToInitialInviter = awardAfterUser12ToInitialInviter + 10000e18 * 4 / 1000 + 10000e18 * 5 / 100;
         assertEq(awardUser13, awardAfterUser13ToInitialInviter);
         console.log("Award to initialInviter after user13:",awardUser13);
 
-        (,,Level userLevel,,,,) = mining.getUserInfo(user11);
+        (,,,Level userLevel,,,,) = mining.getUserInfo(user11);
         console.log("user level", uint256(userLevel));
        
         bindInviter(user14, user11);
         staking(user14, 1000e18);
         uint256 awardAfterUser14ToInitialInviter = awardAfterUser13ToInitialInviter + 1000e18 * 2 / 1000 + 1000e18 * 5 / 100;
-        (,uint256 awardUser14,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 awardUser14,,,,,,) = mining.getUserInfo(initialInviter);
         assertEq(awardUser14, awardAfterUser14ToInitialInviter);
         console.log("Award to initialInviter after user14:",awardUser14);
 
 
-        (,uint256 awardUser14ToUser11,,,,,) = mining.getUserInfo(user11);
+        (,uint256 awardUser14ToUser11,,,,,,) = mining.getUserInfo(user11);
         assertEq(awardUser14ToUser11, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
 
     }
@@ -415,7 +415,7 @@ contract MiningTest is Test, IMining{
 
         vm.startPrank(initialInviter);
         mining.claimAward(50e18);
-        (,uint256 award,,,,,) = mining.getUserInfo(initialInviter);
+        (,uint256 award,,,,,,) = mining.getUserInfo(initialInviter);
         assertEq(award, 50e18);
         mining.claimAward(50e18);
 
