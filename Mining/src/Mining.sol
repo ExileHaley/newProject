@@ -109,7 +109,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
     function staking(uint256 amountToken) external {
         User storage user = userInfo[msg.sender];
-        require(user.inviter != address(0), "Need to bind the inviter address.");
+        //require(user.inviter != address(0), "Need to bind the inviter address.");
         //测试
         // require(getQuoteAmount(amountToken) >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
