@@ -29,28 +29,27 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     address public token;
     address public lp;
     uint256 public index;
-    address public initialInviter;
+    // address public initialInviter;
 
     mapping(uint256 => StakingOrder) public stakingOrderInfo;
     mapping(address => User) public userInfo;
     StakingOrder[] public stakingOrders;
     
-    function initialize(address _token, address _lp, address _initialInviter) public initializer {
+    function initialize(address _token, address _lp) public initializer {
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
         token = _token;
         lp = _lp;
-        initialInviter = _initialInviter;
         index = 0;
     }
 
      // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
-    function setConfig(address _token, address _initialInviter) external onlyOwner {
+    function setConfig(address _token, address _lp) external onlyOwner {
         require(_token != address(0), "Zero address");
         token = _token;
-        initialInviter = _initialInviter;
+        lp = _lp;
     }
 
     function getValidOrderIndexes(address _user) public view returns (uint256[] memory) {
@@ -111,6 +110,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     function staking(uint256 amountToken) external {
         User storage user = userInfo[msg.sender];
         require(user.inviter != address(0), "Need to bind the inviter address.");
+        //测试
         // require(getQuoteAmount(amountToken) >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
         StakingOrder memory order = StakingOrder({
@@ -130,7 +130,9 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     }
 
     function updateLevel(address _user, uint256 _amount) internal{
-        uint256 usdtAmount = getQuoteAmount(_amount);
+        // uint256 usdtAmount = getQuoteAmount(_amount);
+        //测试
+        uint256 usdtAmount = _amount;
         address current = _user;
         while(current != address(0)){
             address inviter = userInfo[current].inviter;
@@ -166,7 +168,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
             address inviter = userInfo[current].inviter;
             if (inviter == address(0)) break;
 
-            if (userInfo[inviter].invitees.length >= (i + 1)) {
+            if (userInfo[inviter].invitees.length >= (i + 1) && getValidOrderIndexes(inviter).length > 0) {
                 uint256 reward = baseAmount * rates[i] / totalBase;
                 userInfo[inviter].award += reward;
 
@@ -239,7 +241,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         require(inviter != msg.sender, "Cannot bind yourself as inviter.");
         require(userInfo[msg.sender].inviter == address(0), "Inviter already bound.");
         require(inviter != address(0), "Inviter cannot be zero address.");
-        if(inviter != initialInviter) require(userInfo[inviter].inviter != address(0) && userInfo[inviter].stakingOrdersIndexes.length > 0, "Inviter must be registered.");
         userInfo[msg.sender].inviter = inviter;
         // userInfo[inviter].invitees.push(msg.sender);
     }

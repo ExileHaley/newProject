@@ -50,7 +50,7 @@ contract MiningTest is Test, IMining{
                 address(miningImpl), 
                 abi.encodeCall(
                     miningImpl.initialize, 
-                    (address(token), token.pancakePair(), initialInviter)
+                    (address(token), token.pancakePair())
                 )
             );
             mining = Mining(payable(address(miningProxy))); 

@@ -12,7 +12,7 @@ contract DeployScript is Script {
     Mining public mining;
 
     address public initialRecipient;
-    address public initialInviter;
+    // address public initialInviter;
     address public exceedTaxWallet;
 
     function setUp() public {
@@ -21,7 +21,7 @@ contract DeployScript is Script {
 // 初始邀请人地址：0x5E0D2012955cEA355c9efc041c5ec40a6985849b
        
         initialRecipient = address(0xdd62810b86c7b0cA2C1C219DA7B3bB1Fc49bAb3C);
-        initialInviter = address(0x5E0D2012955cEA355c9efc041c5ec40a6985849b);
+        // initialInviter = address(0x5E0D2012955cEA355c9efc041c5ec40a6985849b);
         exceedTaxWallet = address(0x31b33Ce446A54a5DC4BbfB253861bA3bb485dA97);
     }
 
@@ -38,7 +38,7 @@ contract DeployScript is Script {
                 address(miningImpl), 
                 abi.encodeCall(
                     miningImpl.initialize, 
-                    (address(token), token.pancakePair(), initialInviter)
+                    (address(token), token.pancakePair())
                 )
             );
             mining = Mining(payable(address(miningProxy))); 
