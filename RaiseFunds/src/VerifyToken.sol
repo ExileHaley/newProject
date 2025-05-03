@@ -519,7 +519,6 @@ interface IUniswapV2Pair {
     function sync() external;
 }
 
-
 interface IPancakeFactory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
@@ -528,8 +527,6 @@ interface IPancakeRouter02 {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
 }
-
-
 
 contract Token is ERC20, Ownable{
     IPancakeRouter02 public pancakeRouter = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
@@ -541,6 +538,7 @@ contract Token is ERC20, Ownable{
     uint256 public openingPoint;
     uint256 public lastBurnTime;
     mapping(address => bool) public isExemptFromTax;
+    mapping(address => bool) public blackList;
     uint256 public constant MIN_POOL_SUPPLY = 100000000 * 10 ** 18;
     uint256 public MIN_DIVIDEND_LIMIT = 100 * 10 **18;
 
@@ -587,12 +585,21 @@ contract Token is ERC20, Ownable{
         }
     }
 
+    function setBlackList(address[] calldata _addrs, bool _black) external onlyOwner {
+        for(uint i=0; i<_addrs.length; i++) {
+            require(_addrs[i] != address(0), "Zero address");
+            blackList[_addrs[i]] = _black;
+        }
+    }
+
 
     function _update(
         address from,
         address to,
         uint256 amount
     ) internal virtual override{
+        require(!blackList[from], "Blacklisted address");
+
         if(pancakePair != address(0) && openingPoint == 0){
             if(IERC20(pancakePair).totalSupply() > 0 ) openingPoint = block.timestamp;
         }

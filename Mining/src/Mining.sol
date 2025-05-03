@@ -33,6 +33,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
     mapping(uint256 => StakingOrder) public stakingOrderInfo;
     mapping(address => User) public userInfo;
+    mapping(address => uint256) public liquidityAmount;
     StakingOrder[] public stakingOrders;
     
     function initialize(address _token, address _lp) public initializer {
@@ -418,6 +419,97 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
     function serchLiquidityBalance(address _user) external view returns(uint256){
         return IERC20(lp).balanceOf(_user);
     }
+
+    function getQuoteAmountToToken(uint256 amountUsdt) public view returns(uint256 amountToken){
+        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(uniswapV2Factory, USDT, token);
+        amountToken = UniswapV2Library.quote(amountUsdt, reserveA, reserveB);
+    }
+
+    function raisefunds(uint256 amountUsdt) external{
+        //测试
+        // require(amountUsdt >= 100e18, "At least 100USDT tokens are required.");
+        TransferHelper.safeTransferFrom(USDT, msg.sender, address(this), amountUsdt);
+        uint256 amountToken = getQuoteAmountToToken(amountUsdt);
+        IToken(token).mint(address(this), amountToken);
+        IERC20(USDT).approve(uniswapV2Router, amountUsdt);
+        IERC20(token).approve(uniswapV2Router, amountToken);
+        (uint _amountToken,uint256 _amountUsdt,uint256 _liquidity) = IUniswapV2Router02(uniswapV2Router).addLiquidity(
+            token, 
+            USDT, 
+            amountToken, 
+            amountUsdt, 
+            0, 
+            0, 
+            address(this), 
+            block.timestamp
+        );
+        liquidityAmount[msg.sender] += _liquidity;
+        if(amountUsdt > _amountUsdt) TransferHelper.safeTransfer(USDT, msg.sender, amountUsdt - _amountUsdt); 
+        if(amountToken > _amountToken) TransferHelper.safeTransfer(token, DEAD, amountToken - _amountToken);
+    }
+
+    uint256 toDeadLiquidityAmount;
+
+    function removeLiquidityOfRaiseFunds() external {
+        require(liquidityAmount[msg.sender] > 0, "No liquidity to remove.");
+        uint256 _liquidity = liquidityAmount[msg.sender];
+
+        IERC20(lp).approve(uniswapV2Router, _liquidity);
+        (uint _amountUsdt, uint _amountToken)=IUniswapV2Router02(uniswapV2Router).removeLiquidity(
+            USDT, 
+            token, 
+            _liquidity, 
+            0, 
+            0, 
+            msg.sender, 
+            block.timestamp
+        );
+
+        liquidityAmount[msg.sender] = 0;
+        if(_amountUsdt > 0) TransferHelper.safeTransfer(USDT, msg.sender, _amountUsdt);
+        uint256 oneHalf = _amountToken / 2;
+        if(_amountToken > 0) TransferHelper.safeTransfer(token, DEAD, oneHalf);
+
+
+        try this._safeSwapAndAdd(oneHalf) {
+            
+        } catch {
+            // 处理异常
+            toDeadLiquidityAmount += oneHalf;
+        }
+    }
+
+    function _safeSwapAndAdd(uint256 amount) external {
+        require(msg.sender == address(this), "FORBIDDEN"); // 只允许内部调用
+        uint256 oneHalf = amount / 2;
+        _swapTokensForUSDT(oneHalf);
+        uint256 usdtAmount = IERC20(USDT).balanceOf(address(this));
+        if (usdtAmount > 0) _addLiquidity(amount - oneHalf, usdtAmount);
+        
+    }
+    
+    function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) private {
+        IERC20(token).approve(uniswapV2Router, tokenAmount);
+        IERC20(USDT).approve(uniswapV2Router, usdtAmount);
+        IUniswapV2Router02(uniswapV2Router).addLiquidity(token, USDT, tokenAmount, usdtAmount, 0, 0, DEAD, block.timestamp);
+    }
+
+    //先执行卖出逻辑，然后再执行添加逻辑
+    function _swapTokensForUSDT(uint256 amount) private {
+        if (amount == 0) return;
+        address[] memory path = new address[](2);
+        path[0] = address(this);
+        path[1] = USDT;
+        IERC20(token).approve(uniswapV2Router, amount);
+        IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amount, 
+            0, 
+            path, 
+            address(this), 
+            block.timestamp
+        );
+    }
+
 
 
 }

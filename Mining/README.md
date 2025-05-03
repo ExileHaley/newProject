@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
+$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 ### build token constructor
@@ -112,8 +112,16 @@ function serchLiquidityBalance(address _user) external view returns(uint256);
 function removeLiquidity(uint256 _liquidity) external;
 
 //获取个人业绩，返回值单位usdt
-function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt)
+function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt);
+
+
+//用户使用usdt进行前期认购,amountUsdt是usdt的数量，这里usdt需要对挖矿合约进行授权
+function raisefunds(uint256 amountUsdt) external;
+//前期认购的用户移除流动性，需要lp对当前合约进行授权，没有参数默认移除全部
+function removeLiquidityOfRaiseFunds() external;
+//查询前期认购用户获得lp数量，移除的时候也默认移除这里的全部数量
+function liquidityAmount(address _user) external view returns(uint256);
 
 ```
 
-#### 注:getUserInfo返回值新增了一个_usdtValue字段，更新合约地址更新abi
+#### 注:更新合约地址更新abi，因为新增了三个用户认购的方法
