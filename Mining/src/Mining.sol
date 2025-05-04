@@ -240,7 +240,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
     function bindInviter(address inviter) external {
         require(inviter != msg.sender, "Cannot bind yourself as inviter.");
-        require(userInfo[msg.sender].inviter == address(0), "Inviter already bound.");
+        // require(userInfo[msg.sender].inviter == address(0), "Inviter already bound.");
         require(inviter != address(0), "Inviter cannot be zero address.");
         userInfo[msg.sender].inviter = inviter;
         // userInfo[inviter].invitees.push(msg.sender);
