@@ -420,10 +420,18 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         return IERC20(lp).balanceOf(_user);
     }
 
-    function getQuoteAmountToToken(uint256 amountUsdt) public view returns(uint256 amountToken){
-        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(uniswapV2Factory, USDT, token);
-        amountToken = UniswapV2Library.quote(amountUsdt, reserveA, reserveB);
+    function getQuoteAmountToToken(uint256 amountUsdt) public view returns (uint256 amountToken) {
+        (uint reserve0, uint reserve1) = UniswapV2Library.getReserves(uniswapV2Factory, USDT, token);
+        (address token0,) = UniswapV2Library.sortTokens(USDT, token);
+        
+        // 保证 reserveA 是 USDT 的储备，reserveB 是 token 的储备
+        if (USDT == token0) {
+            amountToken = UniswapV2Library.quote(amountUsdt, reserve0, reserve1);
+        } else {
+            amountToken = UniswapV2Library.quote(amountUsdt, reserve1, reserve0);
+        }
     }
+
 
     function raisefunds(uint256 amountUsdt) external{
         //测试
@@ -461,7 +469,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
             _liquidity, 
             0, 
             0, 
-            msg.sender, 
+            address(this), 
             block.timestamp
         );
 
@@ -513,3 +521,4 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
 
 }
+

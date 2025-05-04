@@ -10,7 +10,7 @@ contract UpgradeScript is Script {
     Mining public mining;
 
     function setUp() public {
-        mining = Mining(payable(0x19b88c96Ccb1f25754174B5E9A71FDA9f6258F0D));
+        mining = Mining(payable(0x75a79Ef6bb812af0FA8a59b40EBcdFc05cB4c092));
     }
 
     function run() public {
