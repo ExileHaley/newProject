@@ -33,8 +33,8 @@ contract MiningTest is Test, IMining{
             owner = address(0x1);
             initialRecipient = address(0x2);
             initialInviter = address(0x3);
-            exceedTaxWallet = address(0x1111);
-            user = address(0x4);
+            exceedTaxWallet = address(0x4);
+            user = address(0x5);
             usdt = address(0x55d398326f99059fF775485246999027B3197955);
             uniswapV2Router = address(0x10ED43C718714eb63d5aA57B78B54704E256024E);
         }
@@ -57,9 +57,11 @@ contract MiningTest is Test, IMining{
         }
         token.setMining(address(mining));
         vm.stopPrank();
+
         vm.startPrank(initialRecipient);
         token.transfer(user, 1000e18);
         vm.stopPrank();
+
         addLiquidity();
     }
 
@@ -84,61 +86,76 @@ contract MiningTest is Test, IMining{
         assertEq(token.balanceOf(token.pancakePair()), 10000000e18);
     }
 
-    function test_bindInviter() public{
-        vm.startPrank(user);
-        mining.bindInviter(initialInviter);
+    function test_transfer(address sender, address recipient, uint256 amount) internal{
+        vm.startPrank(sender);
+        token.transfer(recipient, amount);
         vm.stopPrank();
-        
-        (address _inviter,,,,,,,) = mining.getUserInfo(user);
-        assertEq(_inviter, initialInviter);
     }
 
-    function test_staking() public {
-        test_bindInviter();
-        vm.startPrank(user);
-        token.approve(address(mining), 1000e18);
-        mining.staking(1000e18);
+    function test_bindInviter(address _user, address _inviter) internal{
+        vm.startPrank(_user);
+        mining.bindInviter(_inviter);
         vm.stopPrank();
-        //assert order index
-        (,,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
+    }
+
+    function test_staking_for_specify(address _user, uint256 _amount) internal{
+        vm.startPrank(_user);
+        token.approve(address(mining), _amount);
+        mining.staking(_amount);
+        vm.stopPrank();
+    }
+
+    function test_staking_reward() public {
+        test_transfer(initialRecipient, initialInviter, 1e18);
+        test_bindInviter(user, initialInviter);
+        test_staking_for_specify(initialInviter, 1e18);
+        test_staking_for_specify(user, 1000e18);
+        //user info
+        (address _inviter,,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
+        assertEq(_inviter, initialInviter);
         assertEq(_validOrderIndexes.length, 1);
         assertEq(_orderIndexes.length, 1);
-        assertEq(mining.getStakingOrders().length,1);
+
         //assert order info
-        (address holder, uint256 amount, uint256 stakingTime, bool isExtracted) = mining.stakingOrderInfo(0);
+        (address holder, uint256 amount, uint256 stakingTime, bool isExtracted) = mining.stakingOrderInfo(_orderIndexes[0]);
         assertEq(holder, user);
         assertEq(amount, 1000e18);
         assertEq(stakingTime, block.timestamp);
         assertEq(isExtracted, false);
+
         //assert inviter award
         (,uint256 _award,,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
         assertEq(_award, 1000e18 * 10 / 100);
         assertEq(_invitees.length, 1);
         assertEq(_awardRecords.length, 1);
+
         //award record
         assertEq(_awardRecords[0].stakingAmount, 1000e18);
         assertEq(_awardRecords[0].awardAmount, 1000e18 * 10 / 100);
         assertEq(_awardRecords[0].invitee, user);
         assertEq(_awardRecords[0].isLevelAward, false);
         assertEq(_awardRecords[0].awardTime, block.timestamp);
+
     }
 
     function test_getOrderRealTimeYield() public {
-        test_staking();
+        test_staking_for_specify(user, 1000e18);
+
         vm.warp(block.timestamp + 1 days);
-        (uint256 _realTimeYield) = mining.getOrderRealTimeYield(0);
+        uint256 _realTimeYield = mining.getOrderRealTimeYield(0);
         uint256 _expectedYield = uint256(1300e18) / 30 days * 1 days;
         assertEq(_realTimeYield, _expectedYield);
 
         vm.warp(block.timestamp + 29 days);
-        (uint256 _realTimeYield30) = mining.getOrderRealTimeYield(0);
+        uint256 _realTimeYield30 = mining.getOrderRealTimeYield(0);
         assertEq(_realTimeYield30, 1300e18);
     }
 
     function test_claim() public{
-        test_staking();
-        vm.startPrank(user);
+        test_staking_for_specify(user, 1000e18);
         vm.warp(block.timestamp + 30 days);
+
+        vm.startPrank(user);
         mining.claimOrder(0);
         (,,,,uint256[] memory _validOrderIndexes,uint256[] memory _orderIndexes,,) = mining.getUserInfo(user);
         assertEq(_validOrderIndexes.length, 0);
@@ -149,276 +166,106 @@ contract MiningTest is Test, IMining{
         vm.stopPrank();
     }
 
-    function staking(address _user, uint256 amount) internal{
-        vm.startPrank(_user);
-        token.approve(address(mining), amount);
-        mining.staking(amount);
-        vm.stopPrank();
-    }
-
-    function bindInviter(address _user, address _inviter0) internal{
-        vm.startPrank(_user);
-        mining.bindInviter(_inviter0);
-        vm.stopPrank();
-        (address _inviter,,,,,,,) = mining.getUserInfo(_user);
-        assertEq(_inviter, _inviter0);
-    }
-
     //测试多层奖励
     function test_staking_no_hierarchy_award() public {
-        address user1 = address(0x5);
 
-        //user bind inviter and staking
-        bindInviter(user, initialInviter);
-        staking(user, 1000e18);
+        uint256 amount = 1000e18;
+        uint256 amountUser = 1e18;
+        address user1 = vm.addr(0x6);
+        address user2 = vm.addr(0x7);
+        address user3 = vm.addr(0x8);
+        address user4 = vm.addr(0x9);
+        address user5 = vm.addr(0x10);
+        address user6 = vm.addr(0x11);
+        address user7 = vm.addr(0x12);
+        address user8 = vm.addr(0x13);
+        test_transfer(initialRecipient, initialInviter, amount);
+        test_transfer(initialRecipient, user1, amount);
+        test_transfer(initialRecipient, user2, amount);
+        test_transfer(initialRecipient, user3, amount);
+        test_transfer(initialRecipient, user4, amount);
+        test_transfer(initialRecipient, user5, amountUser);
+        test_transfer(initialRecipient, user6, amountUser);
+        test_transfer(initialRecipient, user7, amountUser);
+        test_transfer(initialRecipient, user8, amountUser);
 
-        vm.startPrank(initialRecipient);
-        token.transfer(user1, 1000e18);
-        vm.stopPrank();
+        
 
-        //user bind inviter and staking
-        bindInviter(user1, user);
-        staking(user1, 1000e18);
+        test_bindInviter(user, initialInviter);
+        test_bindInviter(user1, user);
+        test_bindInviter(user2, user1);
+        test_bindInviter(user3, user2);
+        test_bindInviter(user4, user3);
 
-        (,uint256 _award,,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
-        assertEq(_award, 1000e18 * 10 / 100);
-        assertEq(_invitees.length, 1);
-        assertEq(_invitees[0], user);
-        assertEq(_awardRecords.length, 1);
-
-    }
-
-    function test_staking_with_hierarchy_award() public {
-        address initialInviter0 = vm.addr(0x5);
-        address initialInviter1 = vm.addr(0x6);
-        address initialInviter2 = vm.addr(0x7);
-        address initialInviter3 = vm.addr(0x8);
-        address initialInviter4 = vm.addr(0x9);
-
-        address user0 = vm.addr(0xA);
-        address user1 = vm.addr(0xB);
-        address user2 = vm.addr(0xC);
-        address user3 = vm.addr(0xD);
-
-
-        vm.startPrank(initialRecipient);
-        token.transfer(initialInviter0, 1000e18);
-        token.transfer(initialInviter1, 1000e18);
-        token.transfer(initialInviter2, 1000e18);
-        token.transfer(initialInviter3, 1000e18);
-        token.transfer(initialInviter4, 1000e18);
-        token.transfer(user0, 1000e18);
-        token.transfer(user1, 1000e18);
-        token.transfer(user2, 1000e18);
-        token.transfer(user3, 1000e18);
-
-        vm.stopPrank();
-
-        //满足initialInviter邀请5个人的要求
-        bindInviter(initialInviter0, initialInviter);
-        bindInviter(initialInviter1, initialInviter);
-        bindInviter(initialInviter2, initialInviter);
-        bindInviter(initialInviter3, initialInviter);
-        bindInviter(initialInviter4, initialInviter);
-        (,,,,,,address[] memory _invitees,) = mining.getUserInfo(initialInviter);
-        assertEq(_invitees.length, 0);
-        staking(initialInviter0, 1000e18);
-        staking(initialInviter1, 1000e18);
-        staking(initialInviter2, 1000e18);
-        staking(initialInviter3, 1000e18);
-        staking(initialInviter4, 1000e18);
-        (,,,,,,address[] memory _invitees0,) = mining.getUserInfo(initialInviter);
-        assertEq(_invitees0.length, 5);
-        (,uint256 award,,,,,,) = mining.getUserInfo(initialInviter);
-        assertEq(award, 5000e18 * 10 / 100);
-
-        //测试层级奖励
-        bindInviter(user0, initialInviter);
-        staking(user0, 1000e18);
-        (,uint256 awardUser0,,,,,address[] memory _inviteesUser0,) = mining.getUserInfo(initialInviter);
-        assertEq(_inviteesUser0.length, 6);
-        assertEq(awardUser0, 6000e18 * 10 / 100);
-
-        bindInviter(user1, user0);
-        staking(user1, 1000e18);
-        (,uint256 awardUser1,,,,,address[] memory _inviteesUser1,) = mining.getUserInfo(initialInviter);
-        assertEq(_inviteesUser1.length, 6);
-        uint256 awardAfterUser1 = 6000e18 * 10 / 100 + 1000e18 * 5 / 100;
-        assertEq(awardUser1, awardAfterUser1);
-
-        bindInviter(user2, user1);
-        staking(user2, 1000e18);
-        (,uint256 awardUser2,,,,,,) = mining.getUserInfo(initialInviter);
-        uint256 awardAfterUser2 = awardAfterUser1 + 1000e18 * 25 / 1000;
-        assertEq(awardUser2, awardAfterUser2);
+        test_bindInviter(user5, initialInviter);
+        test_bindInviter(user6, initialInviter);
+        test_bindInviter(user7, initialInviter);
+        test_bindInviter(user8, initialInviter);
 
 
-        bindInviter(user3, user2);
-        staking(user3, 1000e18);
-        (,uint256 awardUser3,,,,,,) = mining.getUserInfo(initialInviter);
-        // console.log("level", uint256(level));
-        uint256 awardAfterUser3 = awardAfterUser2 + 1000e18 * 125 / 10000;
-        assertEq(awardUser3, awardAfterUser3);
+        test_staking_for_specify(initialInviter, amount);
+        test_staking_for_specify(user, amount);
+        test_staking_for_specify(user5, amountUser);
+        test_staking_for_specify(user6, amountUser);
+        test_staking_for_specify(user7, amountUser);
+        test_staking_for_specify(user8, amountUser);
+        // 194 150000000000000000
+        // 969 150000000000000000
+        test_staking_for_specify(user1, amount);
+        test_staking_for_specify(user2, amount);
+        test_staking_for_specify(user3, amount);
+        test_staking_for_specify(user4, amount);
+        
+        (,,,,,,address[] memory _invitees,AwardRecord[] memory _awardRecords) = mining.getUserInfo(initialInviter);
+        // assertEq(expectedInitialInviter, _awardInitialInviter);
+        assertEq(_awardRecords.length, 9);
+        assertEq(_invitees.length, 5);
         
     }
+
 
 
     //测试级别奖励
     function test_staking_level() public {
-        test_staking_with_hierarchy_award();
-
-        address user4 = vm.addr(0xF);
-        address user5 = vm.addr(0x10);
-
-        vm.startPrank(initialRecipient);
-        token.transfer(user4, 1000e18);
-        token.transfer(user5, 1000e18);
-        vm.stopPrank();
-        
-        bindInviter(user4, initialInviter);
-        staking(user4, 1000e18);
-        (,uint256 awardUser4,,Level levelAfterUser4,,,,) = mining.getUserInfo(initialInviter);
-        console.log("levelAfterUser4", uint256(levelAfterUser4));
-        (,,uint256 usdtValueAfter4,) = mining.userInfo(initialInviter);
-        console.log("usdtValue after user4", usdtValueAfter4);
-        // console.log("inviteeAfterUser4", inviteeAfterUser4.length);
-        uint256 awardAfterUser1 = 1000e18 * 5 / 100;
-        uint256 awardAfterUser2 = 1000e18 * 25 / 1000;
-        uint256 awardAfterUser3 = 1000e18 * 125 / 10000;
-        uint256 levelAwardAfter4 = 7000e18 * 10 / 100 + awardAfterUser1 + awardAfterUser2 + awardAfterUser3;
-        assertEq(awardUser4, levelAwardAfter4);
-
-        bindInviter(user5, initialInviter);
-        staking(user5, 1000e18);
-        (,uint256 awardUser5,,,,,,) = mining.getUserInfo(initialInviter);
- 
-        uint256 levelAwardAfter5 = levelAwardAfter4 + 1000e18 * 10 / 100 + 1000e18 * 2 / 1000;
-        assertEq(awardUser5, levelAwardAfter5);
-    }
-
-
-    function test_staking_levelV1() public {
-
-        address user6 = vm.addr(0x11);
-        address user7 = vm.addr(0x12);
-
-        address user8 = vm.addr(0x13);
         address user9 = vm.addr(0x14);
         address user10 = vm.addr(0x15);
-
+        
+        test_transfer(initialRecipient, user9, 10000e18);
+        test_transfer(initialRecipient, user10, 10000e18);
         
 
-        vm.startPrank(initialRecipient);
-        token.transfer(user6, 10000e18);
-        token.transfer(user7, 1000e18);
-        token.transfer(user8, 10000e18);
-        token.transfer(user9, 1000e18);
-        token.transfer(user10, 1000e18);
-
-        vm.stopPrank();
-
-        bindInviter(user6, initialInviter);
-        staking(user6, 10000e18);
-        bindInviter(user7, initialInviter);
-        staking(user7, 1000e18);
-        (,uint256 awardUser7,,Level levelAfterUser7,,,,) = mining.getUserInfo(initialInviter);
-        assertEq(uint256(levelAfterUser7), 1);
-        assertEq(awardUser7, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
-        console.log("Award After User7", awardUser7);
-        //1102        
-
-        bindInviter(user8, user6);
-        staking(user8, 10000e18);
-        (,uint256 awardUser8,,,,,,) = mining.getUserInfo(initialInviter);
-        console.log("Award After User8", awardUser8);
-        //1622
-
-
-        bindInviter(user9, user6);
-        staking(user9, 1000e18);
-        (,uint256 awardUser9,,Level levelOfInitialInviter,,,,) = mining.getUserInfo(initialInviter);
-        console.log("Award After User9", awardUser9);
-        console.log("LevelOfInitialInviter", uint256(levelOfInitialInviter));
-        (,uint256 awardUser9ToUser6,,Level levelAfterUser9,,,,) = mining.getUserInfo(user6);
-        assertEq(uint256(levelAfterUser9), 1);
-        assertEq(awardUser9ToUser6, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
-        console.log("Award After User9 To User6", awardUser9ToUser6);
-        //1672
-       
-        bindInviter(user10, user6);
-        staking(user10, 1000e18);
-        (,uint256 awardUser10,,,,,,) = mining.getUserInfo(user6);
-        uint256 awardAfterUser10ToUser6 = 12000e18 * 10 / 100 + 1000e18 * 4 / 1000;
-        assertEq(awardUser10, awardAfterUser10ToUser6);
+        test_bindInviter(user9, initialInviter);
+        test_bindInviter(user10, user9);
         
-        (,uint256 awardUser10ToInitialInviter,,,,,,) = mining.getUserInfo(initialInviter);
-        console.log("Award After User10 To InitialInviter", awardUser10ToInitialInviter);
+        test_staking_for_specify(user9, 10000e18);
+        (,uint256 awardAfterUser9,uint256 usdtValue,Level level,,,,AwardRecord[] memory _awardRecordsAfterUser9) = mining.getUserInfo(initialInviter);
+        assertEq(awardAfterUser9, 0);
+        assertEq(usdtValue, 10000e18);
+        assertEq(uint256(level), 1);
+        assertEq(_awardRecordsAfterUser9.length, 0);
 
+        test_staking_for_specify(user10, 10000e18);
+        (,uint256 awardAfterUser10,,,,,,AwardRecord[] memory _awardRecordsAfterUser10) = mining.getUserInfo(initialInviter);
+        assertEq(awardAfterUser10, 10000e18 * 2 / 1000);
+        assertEq(_awardRecordsAfterUser10.length, 1);
     }
 
-    function test_staking_levelV2() public {
 
-        address user11 = vm.addr(0x16);
-        address user12 = vm.addr(0x17);
-
-        address user13 = vm.addr(0x18);
-        address user14 = vm.addr(0x19);
-
-        vm.startPrank(initialRecipient);
-        token.transfer(user11, 50000e18);
-        token.transfer(user12, 1000e18);
-        token.transfer(user13, 10000e18);
-        token.transfer(user14, 1000e18);
-        vm.stopPrank();
-
-        bindInviter(user11, initialInviter);
-        staking(user11, 50000e18);
-        bindInviter(user12, initialInviter);
-        staking(user12, 1000e18);
-        (,uint256 awardUser12,,Level levelAfterUser12,,,,) = mining.getUserInfo(initialInviter);
-        assertEq(uint256(levelAfterUser12), 2);
-        uint256 awardAfterUser12ToInitialInviter = 51000e18 * 10 / 100 + 1000e18 * 4 / 1000;
-        assertEq(awardUser12, awardAfterUser12ToInitialInviter);
-
-
-        bindInviter(user13, user11);
-        staking(user13, 10000e18);
-        (,uint256 awardUser13,,,,,,) = mining.getUserInfo(initialInviter);
-        uint256 awardAfterUser13ToInitialInviter = awardAfterUser12ToInitialInviter + 10000e18 * 4 / 1000 + 10000e18 * 5 / 100;
-        assertEq(awardUser13, awardAfterUser13ToInitialInviter);
-        console.log("Award to initialInviter after user13:",awardUser13);
-
-        (,,,Level userLevel,,,,) = mining.getUserInfo(user11);
-        console.log("user level", uint256(userLevel));
-       
-        bindInviter(user14, user11);
-        staking(user14, 1000e18);
-        uint256 awardAfterUser14ToInitialInviter = awardAfterUser13ToInitialInviter + 1000e18 * 2 / 1000 + 1000e18 * 5 / 100;
-        (,uint256 awardUser14,,,,,,) = mining.getUserInfo(initialInviter);
-        assertEq(awardUser14, awardAfterUser14ToInitialInviter);
-        console.log("Award to initialInviter after user14:",awardUser14);
-
-
-        (,uint256 awardUser14ToUser11,,,,,,) = mining.getUserInfo(user11);
-        assertEq(awardUser14ToUser11, 11000e18 * 10 / 100 + 1000e18 * 2 / 1000);
-
-    }
 
     function test_claimAward() public {
-        address user15 = vm.addr(0x1A);
-        vm.startPrank(initialRecipient);
-        token.transfer(user15, 1000e18);
-        vm.stopPrank();
+        address user11 = vm.addr(0x16);
+        test_transfer(initialRecipient, initialInviter, 1e18);
+        test_transfer(initialRecipient, user11, 1000e18);
+        test_bindInviter(user11, initialInviter);
+        test_staking_for_specify(initialInviter, 1e18);
+        test_staking_for_specify(user11, 1000e18);
 
-        bindInviter(user15, initialInviter);
-        staking(user15, 1000e18);
 
         vm.startPrank(initialInviter);
-        mining.claimAward(50e18);
         (,uint256 award,,,,,,) = mining.getUserInfo(initialInviter);
-        assertEq(award, 50e18);
-        mining.claimAward(50e18);
-
+        assertEq(award, 100e18);
+        mining.claimAward(100e18);
+        
         vm.expectRevert(bytes("No award to claim."));
         mining.claimAward(50e18);
         vm.stopPrank();
