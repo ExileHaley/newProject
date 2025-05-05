@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Token} from "../src/Token.sol";
-import {Mining} from "../src/Mining.sol";
+import {MiningV1} from "../src/MiningV1.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 
 contract DeployScript is Script {
     Token public token;
-    Mining public mining;
+    MiningV1 public miningV1;
 
     address public initialRecipient;
     address public exceedTaxWallet;
@@ -27,25 +27,25 @@ contract DeployScript is Script {
 
         // deploy mining
         {
-            Mining miningImpl = new Mining();
+            MiningV1 miningV1Impl = new MiningV1();
             //deploy proxy of staking
-            ERC1967Proxy miningProxy = new ERC1967Proxy(
-                address(miningImpl), 
+            ERC1967Proxy miningV1Proxy = new ERC1967Proxy(
+                address(miningV1Impl), 
                 abi.encodeCall(
-                    miningImpl.initialize, 
+                    miningV1Impl.initialize, 
                     (address(token), token.pancakePair())
                 )
             );
-            mining = Mining(payable(address(miningProxy))); 
+            miningV1 = MiningV1(payable(address(miningV1Proxy))); 
         }
 
-        token.setMining(address(mining));
+        token.setMining(address(miningV1));
 
         vm.stopBroadcast();
         
         console.log("token address: ", address(token));
         console.log("lp address: ", token.pancakePair());
-        console.log("mining address: ", address(mining));
+        console.log("mining address: ", address(miningV1));
     }
 
 

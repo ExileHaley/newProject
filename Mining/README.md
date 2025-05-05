@@ -31,15 +31,12 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 ```
 
 
-### token地址:0x0299e597850e5e2c90acFB6C214D6845Bb97A5fC
-### lp地址:0xFB020E648fb1ecA6D7777aE440Bef3c4238b1A6d
-### 挖矿合约地址:0x5d93F9E87D5A421cEd88F36Faf93A0C4c9883B3B
-## 最新部署
-<!-- token address:  0x0299e597850e5e2c90acFB6C214D6845Bb97A5fC
-  lp address:  0xFB020E648fb1ecA6D7777aE440Bef3c4238b1A6d
-  mining address:  0x5d93F9E87D5A421cEd88F36Faf93A0C4c9883B3B -->
+### token地址:0x42ddbb65e6AaB8F52D949ad299Bd976458418f44
+### lp地址:0xeA904fd4Fb40862467cE74a244AaE58634F1E0dA
+### 挖矿合约地址:0xA30D078dF0189Ae87B70c635b49424eb5525F031
+
+
 ### 挖矿合约ABI:./out/Mining.sol/Mining.json
-<!-- ### 首码邀请人地址:0x5E0D2012955cEA355c9efc041c5ec40a6985849b -->
 
 ### 挖矿合约方法
 ```solidity
@@ -102,9 +99,13 @@ function getUserRealTimeYield(address userAddr) external view returns (uint256 t
 function claimOrder(uint256 orderIndex) external;
 //提取邀请获得的奖励，amount传入要提取的token奖励数量
 function claimAward(uint256 amount) external;
-
 //获取用户质押所有有效订单质押的代币总数量
 function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount);
+//获取个人业绩，返回值单位usdt
+function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt);
+
+
+
 
 //添加流动性，用户输入代币数量amountToken，然后自动扣除其钱包中的usdt，usdt数量展示通过getQuoteAmount函数获取，返回值不用管，这里token和usdt都需要对挖矿合约进行授权，之前的订单质押需要token对挖矿合约进行授权
 function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount);
@@ -114,9 +115,6 @@ function serchLiquidityBalance(address _user) external view returns(uint256);
 
 //移除流动性，_liquidity流动性lp数量，这里lp要对挖矿合约授权
 function removeLiquidity(uint256 _liquidity) external;
-
-//获取个人业绩，返回值单位usdt
-function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt);
 
 
 //用户使用usdt进行前期认购,amountUsdt是usdt的数量，这里usdt需要对挖矿合约进行授权
