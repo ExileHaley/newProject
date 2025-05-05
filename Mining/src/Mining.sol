@@ -17,6 +17,7 @@ interface IToken {
     function mint(address to, uint256 amount) external;
 }
 
+
 contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, ReentrancyGuard{
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
     address public constant uniswapV2Factory = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
@@ -33,8 +34,8 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
     mapping(uint256 => StakingOrder) public stakingOrderInfo;
     mapping(address => User) public userInfo;
-    mapping(address => uint256) public liquidityAmount;
     StakingOrder[] public stakingOrders;
+    mapping(address => uint256) public liquidityAmount;
     
     function initialize(address _token, address _lp) public initializer {
         __Ownable_init_unchained(_msgSender());
@@ -42,6 +43,11 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         token = _token;
         lp = _lp;
         index = 0;
+    }
+
+    modifier ensure(uint deadline) {
+        require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
+        _;
     }
 
      // Authorize contract upgrades only by the owner
@@ -102,47 +108,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         _validOrderIndexes = getValidOrderIndexes(_user);
     }
 
-
-    // function staking(uint256 amountToken) external {
-    //     User storage user = userInfo[msg.sender];
-    //     //require(user.inviter != address(0), "Need to bind the inviter address.");
-    //     //测试
-    //     // require(getAmountOut(token, USDT, amountToken) >= 100e18, "At least 100USDT tokens are required.");
-    //     TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
-    //     StakingOrder memory order = StakingOrder({
-    //         holder: msg.sender,
-    //         amount: amountToken,
-    //         stakingTime: block.timestamp,
-    //         isExtracted: false
-    //     }); 
-    //     stakingOrders.push(order);
-    //     stakingOrderInfo[index] = order;
-    //     user.stakingOrdersIndexes.push(index);
-    //     userInfo[user.inviter].invitees.push(msg.sender);
-    //     index++;
-
-    //     distribute(msg.sender, amountToken);
-    //     updateLevel(msg.sender, amountToken);
-    // }
-
-    // function updateLevel(address _user, uint256 _amount) internal{
-    //     // uint256 usdtAmount = getQuoteAmount(_amount);
-    //     //测试
-    //     uint256 usdtAmount = _amount;
-    //     address current = _user;
-    //     while(current != address(0)){
-    //         address inviter = userInfo[current].inviter;
-    //         if(inviter == address(0)) break;
-    //         userInfo[inviter].usdtValue += usdtAmount;
-    //         Level newLevel = getLevelByValue(userInfo[inviter].usdtValue);
-    //         if (uint(newLevel) > uint(userInfo[inviter].level)) {
-    //             userInfo[inviter].level = newLevel;
-    //         }
-
-    //         current = inviter;
-    //     }
-
-    // }
     
     function getLevelByValue(uint256 usdtValue) internal pure returns (Level) {
         if (usdtValue >= 1_000_000e18) return Level.V5;
@@ -153,85 +118,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         else return Level.INVALID;
     }
 
-    // function distribute(address _user, uint256 _amountToken) internal {
-    //     address current = _user;
-    //     uint256[5] memory rates = [uint256(1000), 500, 250, 125, 625]; // 单位为1e3，即10% = 1000/10000
-    //     uint256 totalBase = 10000;
-    //     uint256 baseAmount = _amountToken;
-
-    //     // ------ 1. 邀请人奖励 ------
-    //     for (uint256 i = 0; i < 5; i++) {
-    //         address inviter = userInfo[current].inviter;
-    //         if (inviter == address(0)) break;
-
-    //         if (userInfo[inviter].invitees.length >= (i + 1) && getValidOrderIndexes(inviter).length > 0) {
-    //             uint256 reward = baseAmount * rates[i] / totalBase;
-    //             userInfo[inviter].award += reward;
-
-    //             userInfo[inviter].awardRecords.push(AwardRecord({
-    //                 invitee: _user,
-    //                 stakingAmount: _amountToken,
-    //                 awardAmount: reward,
-    //                 awardTime: block.timestamp,
-    //                 isLevelAward: false
-    //             }));
-    //         }
-
-    //         current = inviter;
-    //     }
-
-    //     // ------ 2. 按等级分配 1% 总奖励 ------
-    //     uint256 levelRewardTotal = baseAmount * 100 / totalBase; // 1%
-    //     uint256 perLevelReward = levelRewardTotal / 5;
-    //     bool[5] memory levelRewardClaimed;
-    //     uint256 pendingLevels = 0;
-
-    //     current = _user;
-
-    //     while (current != address(0)) {
-    //         address inviter = userInfo[current].inviter;
-    //         if (inviter == address(0)) break;
-
-    //         Level lvl = userInfo[inviter].level;
-    //         if (lvl != Level.INVALID) {
-    //             uint256 lvlIndex = uint256(lvl) - 1; // Level 枚举从 1 开始
-
-    //             // 如果这个等级未被领取
-    //             if (lvlIndex < 5 && !levelRewardClaimed[lvlIndex]) {
-    //                 // 统计还未被领取的所有等级奖励
-    //                 uint256 accumulatedReward = 0;
-
-    //                 for (uint256 i = 0; i <= lvlIndex; i++) {
-    //                     if (!levelRewardClaimed[i]) {
-    //                         accumulatedReward += perLevelReward;
-    //                         levelRewardClaimed[i] = true; // 标记为已领取
-    //                         pendingLevels++;
-    //                     }
-    //                 }
-
-    //                 // 发放累计奖励给当前 inviter
-    //                 if (accumulatedReward > 0) {
-    //                     userInfo[inviter].award += accumulatedReward;
-    //                     AwardRecord memory record;
-    //                     record.invitee = _user;
-    //                     record.stakingAmount = _amountToken;
-    //                     record.awardAmount = accumulatedReward;
-    //                     record.awardTime = block.timestamp;
-    //                     record.isLevelAward = true;
-
-    //                     userInfo[inviter].awardRecords.push(record);
-
-    //                 }
-    //             }
-    //         }
-
-    //         // 所有等级奖励已分配完，提前跳出
-    //         if (pendingLevels >= 5) break;
-
-    //         current = inviter;
-    //     }
-
-    // }
 
     function staking(uint256 amountToken) external {
         User storage user = userInfo[msg.sender];
@@ -271,12 +157,13 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
             if (inviter == address(0)) break;
 
             User storage up = userInfo[inviter];
-            up.usdtValue += usdtAmount;
-
-            Level newLevel = getLevelByValue(up.usdtValue);
-            if (uint(newLevel) > uint(up.level)) {
+            uint256 newValue = up.usdtValue + usdtAmount;
+            up.usdtValue = newValue;
+            Level newLevel = getLevelByValue(newValue);
+            if (uint8(newLevel) > uint8(up.level)) {
                 up.level = newLevel;
             }
+
 
             current = inviter;
         }
@@ -292,32 +179,52 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         uint256[5] memory rates = [uint256(10000), 5000, 2500, 1250, 625]; // 单位1e3
         uint256 totalBase = 100000;
 
+        // for (uint256 i = 0; i < 5; i++) {
+        //     address inviter = userInfo[current].inviter;
+        //     if (inviter == address(0)) break;
+
+        //     User storage up = userInfo[inviter];
+
+        //     if (up.invitees.length >= (i + 1) && getValidOrderIndexes(inviter).length > 0) {
+        //         uint256 reward = baseAmount * rates[i] / totalBase;
+        //         up.award += reward;
+        //         _recordAward(inviter, userAddr, baseAmount, reward, false);
+        //     }
+
+        //     current = inviter;
+        // }
+
+        uint256 validLength;
         for (uint256 i = 0; i < 5; i++) {
             address inviter = userInfo[current].inviter;
             if (inviter == address(0)) break;
 
             User storage up = userInfo[inviter];
 
-            if (up.invitees.length >= (i + 1) && getValidOrderIndexes(inviter).length > 0) {
-                uint256 reward = baseAmount * rates[i] / totalBase;
-                up.award += reward;
-                _recordAward(inviter, userAddr, baseAmount, reward, false);
+            if (up.invitees.length >= (i + 1)) {
+                validLength = getValidOrderIndexes(inviter).length;
+                if (validLength > 0) {
+                    uint256 reward = baseAmount * rates[i] / totalBase;
+                    up.award += reward;
+                    _recordAward(inviter, userAddr, baseAmount, reward, false);
+                }
             }
 
             current = inviter;
         }
+
     }
 
     function _distributeLevelReward(address userAddr, uint256 baseAmount) internal {
         address current = userAddr;
         uint256 totalBase = 10000;
-        uint256 levelRewardTotal = baseAmount * 100 / totalBase; // 1%
+        uint256 levelRewardTotal = (baseAmount * 100) / totalBase; // 1%
         uint256 perLevelReward = levelRewardTotal / 5;
 
-        bool[5] memory claimed;
-        uint256 claimedCount = 0;
+        uint8 claimedFlag = 0; // 每个 bit 表示对应 level 是否已领奖
+        uint8 claimedCount = 0;
 
-        while (current != address(0)) {
+        while (current != address(0) && claimedCount < 5) {
             address inviter = userInfo[current].inviter;
             if (inviter == address(0)) break;
 
@@ -325,16 +232,19 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
             Level lvl = up.level;
 
             if (lvl != Level.INVALID) {
-                uint256 lvlIndex = uint256(lvl) - 1;
-                if (lvlIndex < 5 && !claimed[lvlIndex]) {
+                uint8 lvlIndex = uint8(lvl) - 1;
+                if (lvlIndex < 5 && (claimedFlag & (1 << lvlIndex)) == 0) {
                     uint256 accumulated = 0;
-                    for (uint256 i = 0; i <= lvlIndex; i++) {
-                        if (!claimed[i]) {
-                            claimed[i] = true;
+
+                    // 从当前级别开始向下找尚未领取的 level
+                    for (uint8 i = 0; i <= lvlIndex; i++) {
+                        if ((claimedFlag & (1 << i)) == 0) {
+                            claimedFlag |= uint8(1 << i); // ✅ 明确转型解决类型错误
                             accumulated += perLevelReward;
                             claimedCount++;
                         }
                     }
+
 
                     if (accumulated > 0) {
                         up.award += accumulated;
@@ -343,10 +253,50 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
                 }
             }
 
-            if (claimedCount >= 5) break;
             current = inviter;
         }
     }
+
+
+    // function _distributeLevelReward(address userAddr, uint256 baseAmount) internal {
+    //     address current = userAddr;
+    //     uint256 totalBase = 10000;
+    //     uint256 levelRewardTotal = baseAmount * 100 / totalBase; // 1%
+    //     uint256 perLevelReward = levelRewardTotal / 5;
+
+    //     bool[5] memory claimed;
+    //     uint256 claimedCount = 0;
+
+    //     while (current != address(0)) {
+    //         address inviter = userInfo[current].inviter;
+    //         if (inviter == address(0)) break;
+
+    //         User storage up = userInfo[inviter];
+    //         Level lvl = up.level;
+
+    //         if (lvl != Level.INVALID) {
+    //             uint256 lvlIndex = uint256(lvl) - 1;
+    //             if (lvlIndex < 5 && !claimed[lvlIndex]) {
+    //                 uint256 accumulated = 0;
+    //                 for (uint256 i = 0; i <= lvlIndex; i++) {
+    //                     if (!claimed[i]) {
+    //                         claimed[i] = true;
+    //                         accumulated += perLevelReward;
+    //                         claimedCount++;
+    //                     }
+    //                 }
+
+    //                 if (accumulated > 0) {
+    //                     up.award += accumulated;
+    //                     _recordAward(inviter, userAddr, baseAmount, accumulated, true);
+    //                 }
+    //             }
+    //         }
+
+    //         if (claimedCount >= 5) break;
+    //         current = inviter;
+    //     }
+    // }
 
     function _recordAward(
         address to,
@@ -455,10 +405,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         return getAmountOut(token, USDT, getUserValidStakingAmount(userAddr));
     }
 
-    modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
-        _;
-    }
 
     /********************************************************pull***********************************************************/
     // **** ADD LIQUIDITY ****
@@ -541,22 +487,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         
     }
 
-    // function serchLiquidityBalance(address _user) external view returns(uint256){
-    //     return IERC20(lp).balanceOf(_user);
-    // }
-
-    // function getQuoteAmountToToken(uint256 amountUsdt) public view returns (uint256 amountToken) {
-    //     (uint reserve0, uint reserve1) = UniswapV2Library.getReserves(uniswapV2Factory, USDT, token);
-    //     (address token0,) = UniswapV2Library.sortTokens(USDT, token);
-        
-    //     // 保证 reserveA 是 USDT 的储备，reserveB 是 token 的储备
-    //     if (USDT == token0) {
-    //         amountToken = UniswapV2Library.quote(amountUsdt, reserve0, reserve1);
-    //     } else {
-    //         amountToken = UniswapV2Library.quote(amountUsdt, reserve1, reserve0);
-    //     }
-    // }
-
 
     function raisefunds(uint256 amountUsdt) external{
         //测试
@@ -582,76 +512,7 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         if(amountToken > _amountToken) TransferHelper.safeTransfer(token, DEAD, amountToken - _amountToken);
     }
 
-    // uint256 toDeadLiquidityAmount;
 
-    // function removeLiquidityOfRaiseFunds() external {
-    //     require(liquidityAmount[msg.sender] > 0, "No liquidity to remove.");
-    //     uint256 _liquidity = liquidityAmount[msg.sender];
-
-    //     IERC20(lp).approve(uniswapV2Router, _liquidity);
-    //     (uint _amountUsdt, uint _amountToken)=IUniswapV2Router02(uniswapV2Router).removeLiquidity(
-    //         USDT, 
-    //         token, 
-    //         _liquidity, 
-    //         0, 
-    //         0, 
-    //         address(this), 
-    //         block.timestamp
-    //     );
-
-    //     liquidityAmount[msg.sender] = 0;
-    //     if(_amountUsdt > 0) TransferHelper.safeTransfer(USDT, msg.sender, _amountUsdt);
-    //     uint256 oneHalf = _amountToken / 2;
-    //     if(_amountToken > 0) TransferHelper.safeTransfer(token, DEAD, oneHalf);
-
-
-    //     try this._safeSwapAndAdd(oneHalf) {
-            
-    //     } catch {
-    //         // 处理异常
-    //         toDeadLiquidityAmount += oneHalf;
-    //     }
-    // }
-
-    // function _safeSwapAndAdd(uint256 amount) external {
-    //     require(msg.sender == address(this), "FORBIDDEN"); // 只允许内部调用
-    //     uint256 oneHalf = amount / 2;
-    //     _swapTokensForUSDT(oneHalf);
-    //     uint256 usdtAmount = IERC20(USDT).balanceOf(address(this));
-    //     if (usdtAmount > 0) _addLiquidity(amount - oneHalf, usdtAmount);
-        
-    // }
-    
-    // function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) private {
-    //     IERC20(token).approve(uniswapV2Router, tokenAmount);
-    //     IERC20(USDT).approve(uniswapV2Router, usdtAmount);
-    //     IUniswapV2Router02(uniswapV2Router).addLiquidity(
-    //         token, 
-    //         USDT, 
-    //         tokenAmount, 
-    //         usdtAmount, 
-    //         0, 
-    //         0, 
-    //         DEAD, 
-    //         block.timestamp
-    //     );
-    // }
-
-    // //先执行卖出逻辑，然后再执行添加逻辑
-    // function _swapTokensForUSDT(uint256 amount) private {
-    //     if (amount == 0) return;
-    //     address[] memory path = new address[](2);
-    //     path[0] = address(this);
-    //     path[1] = USDT;
-    //     IERC20(token).approve(uniswapV2Router, amount);
-    //     IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
-    //         amount, 
-    //         0, 
-    //         path, 
-    //         address(this), 
-    //         block.timestamp
-    //     );
-    // }
 
     function removeLiquidityOfRaiseFunds() external {
         uint256 _liquidity = liquidityAmount[msg.sender];
@@ -683,28 +544,15 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
 
         TransferHelper.safeTransfer(token, DEAD, half);
 
-        try this._swapHalfAndAddLiquidity(remaining) {
-            // 成功添加流动性
-        } catch {
-            
+        // 内部调用替代 try-catch 外部调用
+        uint256 usdtAmount = _swapTokensForUSDT(remaining);
+        if (usdtAmount > 0) {
+            _addLiquidity(remaining, usdtAmount);
+        } else {
             TransferHelper.safeTransfer(token, DEAD, remaining);
         }
     }
 
-    function _swapHalfAndAddLiquidity(uint256 tokenAmount) external {
-        require(msg.sender == address(this), "FORBIDDEN");
-
-        uint256 half = tokenAmount / 2;
-        uint256 remaining = tokenAmount - half;
-
-        uint256 usdtAmount = _swapTokensForUSDT(half);
-
-        if (usdtAmount > 0) {
-            _addLiquidity(remaining, usdtAmount);
-        } else {
-            revert("Swap failed or returned zero USDT");
-        }
-    }
 
     function _swapTokensForUSDT(uint256 amount) internal returns (uint256) {
         if (amount == 0) return 0;
@@ -758,7 +606,6 @@ contract Mining is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining, 
         uint[] memory amounts = IUniswapV2Router02(uniswapV2Router).getAmountsOut(token0Amount, path);
         return amounts[1];
     }
-
 
 }
 

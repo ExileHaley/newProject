@@ -12,16 +12,11 @@ contract DeployScript is Script {
     Mining public mining;
 
     address public initialRecipient;
-    // address public initialInviter;
     address public exceedTaxWallet;
 
     function setUp() public {
-// 代币接收地址：0xdd62810b86c7b0cA2C1C219DA7B3bB1Fc49bAb3C
-// 手续费超出地址：0x31b33Ce446A54a5DC4BbfB253861bA3bb485dA97
-// 初始邀请人地址：0x5E0D2012955cEA355c9efc041c5ec40a6985849b
-       
+        // token = Token();
         initialRecipient = address(0xdd62810b86c7b0cA2C1C219DA7B3bB1Fc49bAb3C);
-        // initialInviter = address(0x5E0D2012955cEA355c9efc041c5ec40a6985849b);
         exceedTaxWallet = address(0x31b33Ce446A54a5DC4BbfB253861bA3bb485dA97);
     }
 
@@ -51,6 +46,7 @@ contract DeployScript is Script {
         console.log("token address: ", address(token));
         console.log("lp address: ", token.pancakePair());
         console.log("mining address: ", address(mining));
-
     }
+
+
 }

@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
+$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 ### build token constructor
@@ -31,9 +31,13 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 ```
 
 
-### token地址:0x9015e88f8F541164B88e6d38d1C58Cb059658b49
-### lp地址:0x194F94bc347E1A8968858c162dd4Ce295caca4Bf
-### 挖矿合约地址:0x75a79Ef6bb812af0FA8a59b40EBcdFc05cB4c092
+### token地址:0x0299e597850e5e2c90acFB6C214D6845Bb97A5fC
+### lp地址:0xFB020E648fb1ecA6D7777aE440Bef3c4238b1A6d
+### 挖矿合约地址:0x5d93F9E87D5A421cEd88F36Faf93A0C4c9883B3B
+## 最新部署
+<!-- token address:  0x0299e597850e5e2c90acFB6C214D6845Bb97A5fC
+  lp address:  0xFB020E648fb1ecA6D7777aE440Bef3c4238b1A6d
+  mining address:  0x5d93F9E87D5A421cEd88F36Faf93A0C4c9883B3B -->
 ### 挖矿合约ABI:./out/Mining.sol/Mining.json
 <!-- ### 首码邀请人地址:0x5E0D2012955cEA355c9efc041c5ec40a6985849b -->
 
