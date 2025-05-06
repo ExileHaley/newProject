@@ -192,8 +192,8 @@ contract MiningV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining
             if (validLength > 0 && invitees[_inviter].length >= (i + 1)) {
                 uint256 reward = baseAmount * rates[i] / totalBase;
                 award[_inviter] += reward;
-                _recordAward(_inviter, userAddr, baseAmount, reward, false);
-                // emit AwardRecordEvent(userAddr, baseAmount, reward, block.timestamp, false);
+                // _recordAward(_inviter, userAddr, baseAmount, reward, false);
+                emit AwardRecordEvent(_inviter, userAddr, baseAmount, reward, block.timestamp, false);
             }
 
             current = _inviter;
@@ -234,8 +234,8 @@ contract MiningV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable, IMining
 
                     if (accumulated > 0) {
                         award[_inviter] += accumulated;
-                        _recordAward(_inviter, userAddr, baseAmount, accumulated, true);
-                        // emit AwardRecordEvent(userAddr, baseAmount, accumulated, block.timestamp, true);
+                        // _recordAward(_inviter, userAddr, baseAmount, accumulated, true);
+                        emit AwardRecordEvent(_inviter, userAddr, baseAmount, accumulated, block.timestamp, true);
                     }
                 }
             }

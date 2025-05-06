@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
+$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 ### build token constructor
