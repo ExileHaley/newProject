@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/Deploy.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
+$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc-dataseed1.defibit.io --broadcast --private-key=[privateKey]
 ```
 
 ### upgrade
@@ -70,11 +70,12 @@ $
 ```
 
 
+## 注：前端对照下面地址进行更换保持一致，后端在config.json中更换liquidity这个地址，然后重新run EAC——linux可执行文件
 
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0x0bfAf23462b2e7c09B736f7Bc23E1D204d7C2e36
-### lp合约地址:0x7a0DDD808178606FE012eaE68B6Dc1DD6b862955
-### liquidity合约地址:0x02A54993D121CD1981C28771C00F65bB86A97970
+### token合约地址:0x8d7FDBe27084e7c99E6dd47AdE9A14859f77AE07
+### lp合约地址:0xb962b0a80b785A657238D722787443f7Eaf0Ceae
+### liquidity合约地址:0xd143F10da8979C91920F12220C91aDAB2D734E18
 
 ### liquidity合约方法:
 ```javascript
