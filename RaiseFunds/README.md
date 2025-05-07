@@ -73,8 +73,8 @@ $
 ## 注：前端对照下面地址进行更换保持一致，后端在config.json中更换liquidity这个地址，然后重新run EAC——linux可执行文件
 
 ### abi:./out/LockLiquidity.sol/LockLiquidity.json
-### token合约地址:0x8d7FDBe27084e7c99E6dd47AdE9A14859f77AE07
-### lp合约地址:0xb962b0a80b785A657238D722787443f7Eaf0Ceae
+### token合约地址:0x6b3149fd77593105936266903508Cc84117C4EdC
+### lp合约地址:0x200B84225Bf786649E327F806B80fD35d9B274c5
 ### liquidity合约地址:0xd143F10da8979C91920F12220C91aDAB2D734E18
 
 ### liquidity合约方法:
