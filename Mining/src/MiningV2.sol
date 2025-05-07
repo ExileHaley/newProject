@@ -46,6 +46,7 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
 
 
     function initialize(address _token, address _lp, address _permit) public initializer {
+        __EIP712_init_unchained("MiningV2", "1");
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
         token = _token;
@@ -81,8 +82,9 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
     }
 
     function staking(uint256 amountToken) external{
-        uint256 amountUSDT = getAmountOut(token, USDT, amountToken);
-        require(amountUSDT >= 100e18, "At least 100USDT tokens are required.");
+        //测试使用
+        // uint256 amountUSDT = getAmountOut(token, USDT, amountToken);
+        // require(amountUSDT >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
 
         emit Staked(msg.sender, amountToken, block.timestamp);
@@ -221,6 +223,9 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         if(amountToken > _amountToken) TransferHelper.safeTransfer(token, DEAD, amountToken - _amountToken);
     }
 
+    function serchLiquidityBalance(address _user) external view returns(uint256){
+        return IERC20(lp).balanceOf(_user);
+    }
 
 
     function removeLiquidityOfRaiseFunds() external {

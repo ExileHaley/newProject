@@ -3,21 +3,23 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Token} from "../src/Token.sol";
-import {MiningV1} from "../src/MiningV1.sol";
+import {MiningV2} from "../src/MiningV2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 
 contract DeployScript is Script {
     Token public token;
-    MiningV1 public miningV1;
+    MiningV2 public miningV2;
 
     address public initialRecipient;
     address public exceedTaxWallet;
+    address public permit;
 
     function setUp() public {
         // token = Token();
         initialRecipient = address(0xdd62810b86c7b0cA2C1C219DA7B3bB1Fc49bAb3C);
         exceedTaxWallet = address(0x31b33Ce446A54a5DC4BbfB253861bA3bb485dA97);
+        permit = address(0x06e638d9A6C38e021d0387A88a845D3D0513D0c6);
     }
 
     function run() public {
@@ -27,25 +29,25 @@ contract DeployScript is Script {
 
         // deploy mining
         {
-            MiningV1 miningV1Impl = new MiningV1();
+            MiningV2 miningV2Impl = new MiningV2();
             //deploy proxy of staking
-            ERC1967Proxy miningV1Proxy = new ERC1967Proxy(
-                address(miningV1Impl), 
+            ERC1967Proxy miningV2Proxy = new ERC1967Proxy(
+                address(miningV2Impl), 
                 abi.encodeCall(
-                    miningV1Impl.initialize, 
-                    (address(token), token.pancakePair())
+                    miningV2Impl.initialize, 
+                    (address(token), token.pancakePair(), permit)
                 )
             );
-            miningV1 = MiningV1(payable(address(miningV1Proxy))); 
+            miningV2 = MiningV2(payable(address(miningV2Proxy))); 
         }
 
-        token.setMining(address(miningV1));
+        token.setMining(address(miningV2));
 
         vm.stopBroadcast();
         
         console.log("token address: ", address(token));
         console.log("lp address: ", token.pancakePair());
-        console.log("mining address: ", address(miningV1));
+        console.log("mining address: ", address(miningV2));
     }
 
 
