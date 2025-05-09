@@ -186,7 +186,8 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
 
     function removeLiquidity(uint256 _liquidity) external {
         TransferHelper.safeTransferFrom(lp, msg.sender, address(this), _liquidity);
-        IERC20(lp).approve(uniswapV2Router, _liquidity);
+        // IERC20(lp).approve(uniswapV2Router, _liquidity);
+        _safeApprove(lp, uniswapV2Router, _liquidity);
         IUniswapV2Router02(uniswapV2Router).removeLiquidity(
             USDT, 
             token, 
@@ -199,6 +200,11 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         
     }
 
+    function _safeApprove(address _token, address _spender, uint256 _amount) internal {
+        IERC20(_token).approve(_spender, 0); 
+        IERC20(_token).approve(_spender, _amount);
+    }
+
     function raisefunds(uint256 amountUsdt) external{
         //测试
         // require(amountUsdt >= 100e18, "At least 100USDT tokens are required.");
@@ -206,8 +212,10 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         // uint256 amountToken = getQuoteAmountToToken(amountUsdt);
         uint256 amountToken = getAmountOut(USDT, token, amountUsdt);
         IToken(token).mint(address(this), amountToken);
-        IERC20(USDT).approve(uniswapV2Router, amountUsdt);
-        IERC20(token).approve(uniswapV2Router, amountToken);
+        // IERC20(USDT).approve(uniswapV2Router, amountUsdt);
+        // IERC20(token).approve(uniswapV2Router, amountToken);
+        _safeApprove(USDT, uniswapV2Router, amountUsdt);
+        _safeApprove(token, uniswapV2Router, amountToken);
         (uint _amountToken,uint256 _amountUsdt,uint256 _liquidity) = IUniswapV2Router02(uniswapV2Router).addLiquidity(
             token, 
             USDT, 
@@ -223,99 +231,90 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         if(amountToken > _amountToken) TransferHelper.safeTransfer(token, DEAD, amountToken - _amountToken);
     }
 
-    function serchLiquidityBalance(address _user) external view returns(uint256){
-        return IERC20(lp).balanceOf(_user);
-    }
+    // function serchLiquidityBalance(address _user) external view returns(uint256){
+    //     return IERC20(lp).balanceOf(_user);
+    // }
 
 
-    function removeLiquidityOfRaiseFunds() external {
-        uint256 _liquidity = liquidityAmount[msg.sender];
-        require(_liquidity > 0, "No liquidity to remove.");
-        liquidityAmount[msg.sender] = 0;
+    // function removeLiquidityOfRaiseFunds() external {
+    //     uint256 _liquidity = liquidityAmount[msg.sender];
+    //     require(_liquidity > 0, "No liquidity to remove.");
+    //     liquidityAmount[msg.sender] = 0;
 
-        (uint256 usdtAmount, uint256 tokenAmount) = _removeLiquidity(_liquidity);
-        if (usdtAmount > 0) TransferHelper.safeTransfer(USDT, msg.sender, usdtAmount);
-        if (tokenAmount > 0) _handleReceivedLiquidity(tokenAmount);
-    }
+    //     (uint256 usdtAmount, uint256 tokenAmount) = _removeLiquidity(_liquidity);
+    //     if (usdtAmount > 0) TransferHelper.safeTransfer(USDT, msg.sender, usdtAmount);
+    //     if (tokenAmount > 0) _handleReceivedLiquidity(tokenAmount);
+    // }
 
-    function _removeLiquidity(uint256 liquidity) internal returns (uint256, uint256) {
-        _safeApprove(lp, uniswapV2Router, liquidity);
+    // function _removeLiquidity(uint256 liquidity) internal returns (uint256, uint256) {
+    //     _safeApprove(lp, uniswapV2Router, liquidity);
 
-        return IUniswapV2Router02(uniswapV2Router).removeLiquidity(
-            USDT, 
-            token, 
-            liquidity, 
-            0, 
-            0, 
-            address(this), 
-            block.timestamp
-        );
-    }
+    //     return IUniswapV2Router02(uniswapV2Router).removeLiquidity(
+    //         USDT, 
+    //         token, 
+    //         liquidity, 
+    //         0, 
+    //         0, 
+    //         address(this), 
+    //         block.timestamp
+    //     );
+    // }
 
-    function _handleReceivedLiquidity(uint256 tokenAmount) internal {
-        uint256 half = tokenAmount / 2;
-        uint256 remaining = tokenAmount - half;
+    // function _handleReceivedLiquidity(uint256 tokenAmount) internal {
+    //     uint256 half = tokenAmount / 2;
+    //     uint256 remaining = tokenAmount - half;
 
-        TransferHelper.safeTransfer(token, DEAD, half);
+    //     TransferHelper.safeTransfer(token, DEAD, half);
 
-        // 内部调用替代 try-catch 外部调用
-        uint256 usdtAmount = _swapTokensForUSDT(remaining);
-        if (usdtAmount > 0) {
-            _addLiquidity(remaining, usdtAmount);
-        } else {
-            TransferHelper.safeTransfer(token, DEAD, remaining);
-        }
-    }
-
-
-    function _swapTokensForUSDT(uint256 amount) internal returns (uint256) {
-        if (amount == 0) return 0;
-
-        _safeApprove(token, uniswapV2Router, amount);
-
-        address[] memory path = new address[](2);
-        path[0] = token;
-        path[1] = USDT;
-
-        uint256 beforeBalance = IERC20(USDT).balanceOf(address(this));
-
-        IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            amount, 
-            0, 
-            path, 
-            address(this), 
-            block.timestamp
-        );
-
-        uint256 afterBalance = IERC20(USDT).balanceOf(address(this));
-        return afterBalance - beforeBalance;
-    }
-
-    function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) internal {
-        _safeApprove(token, uniswapV2Router, tokenAmount);
-        _safeApprove(USDT, uniswapV2Router, usdtAmount);
-
-        IUniswapV2Router02(uniswapV2Router).addLiquidity(
-            token, 
-            USDT, 
-            tokenAmount, 
-            usdtAmount, 
-            0, 
-            0, 
-            DEAD, 
-            block.timestamp
-        );
-    }
-
-    function _safeApprove(address _token, address _spender, uint256 _amount) internal {
-        IERC20(_token).approve(_spender, 0); 
-        IERC20(_token).approve(_spender, _amount);
-    }
+    //     // 内部调用替代 try-catch 外部调用
+    //     uint256 usdtAmount = _swapTokensForUSDT(remaining);
+    //     if (usdtAmount > 0) {
+    //         _addLiquidity(remaining, usdtAmount);
+    //     } else {
+    //         TransferHelper.safeTransfer(token, DEAD, remaining);
+    //     }
+    // }
 
 
+    // function _swapTokensForUSDT(uint256 amount) internal returns (uint256) {
+    //     if (amount == 0) return 0;
 
+    //     _safeApprove(token, uniswapV2Router, amount);
 
+    //     address[] memory path = new address[](2);
+    //     path[0] = token;
+    //     path[1] = USDT;
 
+    //     uint256 beforeBalance = IERC20(USDT).balanceOf(address(this));
 
+    //     IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    //         amount, 
+    //         0, 
+    //         path, 
+    //         address(this), 
+    //         block.timestamp
+    //     );
+
+    //     uint256 afterBalance = IERC20(USDT).balanceOf(address(this));
+    //     return afterBalance - beforeBalance;
+    // }
+
+    // function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) internal {
+    //     _safeApprove(token, uniswapV2Router, tokenAmount);
+    //     _safeApprove(USDT, uniswapV2Router, usdtAmount);
+
+    //     IUniswapV2Router02(uniswapV2Router).addLiquidity(
+    //         token, 
+    //         USDT, 
+    //         tokenAmount, 
+    //         usdtAmount, 
+    //         0, 
+    //         0, 
+    //         DEAD, 
+    //         block.timestamp
+    //     );
+    // }
+
+    
 
 }
