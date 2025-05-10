@@ -67,6 +67,7 @@ function removeLiquidity(uint256 _liquidity) external;
 
 
 //用户使用usdt进行前期认购,amountUsdt是usdt的数量，这里usdt需要对挖矿合约进行授权
+//产品说不走合约和前端，如果不走就不要调用这个方法
 function raisefunds(uint256 amountUsdt) external;
 //前期认购的用户移除流动性，这里lp不需要对挖矿合约进行授权
 function removeLiquidityOfRaiseFunds() external;
