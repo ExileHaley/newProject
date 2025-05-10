@@ -5,7 +5,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-// import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 // import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 // import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
@@ -94,6 +94,19 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
         _allOrderIndexes = user.stakingOrdersIndexes;
         _validOrderIndexes = getValidOrderIndexes(_user);
     }
+
+    function emergencyWithdraw(address token, address to) external onlyOwner {
+        require(to != address(0), "Invalid recipient");
+        uint256 amount = IERC20(token).balanceOf(address(this));
+        TransferHelper.safeTransfer(token, to, amount);
+    }
+
+
+    function isValidInviter(address _inviter) external view returns (bool) {
+        if (_inviter == initialInviter) return true;
+        return userInfo[_inviter].stakingOrdersIndexes.length > 0;
+    }
+
 
     function bindInviter(address _inviter) external {
         require(_inviter != msg.sender && _inviter != address(0), "Cannot bind yourself or 0x as inviter.");

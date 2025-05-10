@@ -25,7 +25,7 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.
 ### staking合约地址:0xf8886244a8C5eB6002C4f14fB93B10687824017a
 
 ### staking合约ABI:./out/Staking.sol/Staking.json
-
+### 记得要更新ABI，然后新增了一个isValidInviter方法，判断邀请地址是否有效
 
 ### staking合约方法
 ```solidity
@@ -43,6 +43,8 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.
         uint256 awardAmount; //奖励数量love
         uint256 awardTime; //奖励时间
     }
+//新增一个方法判断邀请地址是否有效
+function isValidInviter(address _inviter) external view returns (bool);
 //传入订单编号返回订单详情，orderIndex订单编号
 function stakingOrderInfo(uint256 orderIndex) external view returns(StakingOrder);
 //查询用户信息，_user用户地址，_inviter当前用户的邀请人，_award通过邀请获得的love奖励，_validOrderIndexes用户所有没有赎回的订单编号
