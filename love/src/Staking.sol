@@ -230,11 +230,11 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
         order.extracted += yieldAmount;
 
         // 转出LOVE本金
-        TransferHelper.safeTransfer(love, msg.sender, order.amount);
+        TransferHelper.safeTransfer(love, msg.sender, order.amount * 80 / 100);
 
         // 转出BEST收益（如果有）
         if (yieldAmount > 0) {
-            TransferHelper.safeTransfer(best, msg.sender, yieldAmount);
+            TransferHelper.safeTransfer(best, msg.sender, yieldAmount * 80 / 100);
         }
     }
 
@@ -251,7 +251,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
         order.extracted += yieldAmount;
 
         // 发放奖励
-        TransferHelper.safeTransfer(best, msg.sender, yieldAmount);
+        TransferHelper.safeTransfer(best, msg.sender, yieldAmount * 80 / 100);
     }
 
 
@@ -263,7 +263,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
         user.award -= _amount;
 
         // 发放奖励
-        TransferHelper.safeTransfer(love, msg.sender, _amount);
+        TransferHelper.safeTransfer(love, msg.sender, _amount * 80 / 100);
     }
 
 }

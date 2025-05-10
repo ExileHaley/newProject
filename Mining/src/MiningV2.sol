@@ -25,6 +25,8 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
 
     event Staked(address staker, uint256 amount, uint256 time);
     event Claimed(string mark, address recipient, uint256 amount, uint256 time);
+    event Raised(address sender, uint256 amount, uint256 time);
+    event Locked(string mark, uint256 length, uint256 time);
 
     using ECDSA for bytes32;
 
@@ -32,7 +34,7 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         "SignMessage(string mark,address recipient,uint256 amount,uint256 nonce,uint256 deadline)"
     );
     mapping(string => bool) public isExcuted;
-    mapping(address => uint256) public liquidityAmount;
+    
 
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
     address public constant uniswapV2Factory = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
@@ -42,16 +44,18 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
     address public token;
     address public lp;
     address public permit;
+    address public usdtRecipient;
     uint256 public nonce;
 
 
-    function initialize(address _token, address _lp, address _permit) public initializer {
+    function initialize(address _token, address _lp, address _permit, address _usdtRecipient) public initializer {
         __EIP712_init_unchained("MiningV2", "1");
         __Ownable_init_unchained(_msgSender());
         __UUPSUpgradeable_init_unchained();
         token = _token;
         lp = _lp;
         permit = _permit;
+        usdtRecipient = _usdtRecipient;
     }
 
     modifier ensure(uint deadline) {
@@ -62,10 +66,11 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
      // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
-    function setConfig(address _token, address _lp) external onlyOwner {
+    function setConfig(address _token, address _lp, address _permit) external onlyOwner {
         require(_token != address(0), "Zero address");
         token = _token;
         lp = _lp;
+        permit = _permit;
     }
 
     function getAmountOut(address token0, address token1, uint256 token0Amount) public view returns (uint256) {
@@ -205,115 +210,128 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         IERC20(_token).approve(_spender, _amount);
     }
 
+    mapping(address => uint256) public liquidityAmount;
+    mapping(address => bool) public raiseWhitelist;
+    mapping(address => bool) public isRaised;
+
+    function setRaiseWhitelist(address[] memory _users, bool _status) external onlyPermit() {
+
+        for (uint256 i = 0; i < _users.length; i++) {
+            raiseWhitelist[_users[i]] = _status;
+        }
+
+    }
+
+    modifier onlyPermit() {
+        require(msg.sender == permit, "Not lock owner");
+        _;
+    }
+
     function raisefunds(uint256 amountUsdt) external{
-        //测试
-        // require(amountUsdt >= 100e18, "At least 100USDT tokens are required.");
-        TransferHelper.safeTransferFrom(USDT, msg.sender, address(this), amountUsdt);
-        // uint256 amountToken = getQuoteAmountToToken(amountUsdt);
-        uint256 amountToken = getAmountOut(USDT, token, amountUsdt);
-        IToken(token).mint(address(this), amountToken);
-        // IERC20(USDT).approve(uniswapV2Router, amountUsdt);
-        // IERC20(token).approve(uniswapV2Router, amountToken);
-        _safeApprove(USDT, uniswapV2Router, amountUsdt);
-        _safeApprove(token, uniswapV2Router, amountToken);
-        (uint _amountToken,uint256 _amountUsdt,uint256 _liquidity) = IUniswapV2Router02(uniswapV2Router).addLiquidity(
-            token, 
+        require(amountUsdt >= 100e18, "At least 100USDT tokens are required.");
+        require(raiseWhitelist[msg.sender], "Not in whitelist");
+        require(!isRaised[msg.sender], "Already raised");
+        isRaised[msg.sender] = true;
+        TransferHelper.safeTransferFrom(USDT, msg.sender, usdtRecipient, amountUsdt);
+
+        emit Raised(msg.sender, amountUsdt, block.timestamp);
+
+    }
+
+    function lockLiquidity(string memory mark, address[] memory users, uint256[] memory amounts) external onlyPermit(){
+        for(uint i=0; i < users.length; i++){
+            if(users[i] != address(0)){
+                liquidityAmount[users[i]] += amounts[i];
+                
+            }
+        }
+        emit Locked(mark, users.length, block.timestamp);
+    }
+
+
+    function serchLiquidityBalance(address _user) external view returns(uint256){
+        return IERC20(lp).balanceOf(_user);
+    }
+
+
+    function removeLiquidityOfRaiseFunds() external {
+        uint256 _liquidity = liquidityAmount[msg.sender];
+        require(_liquidity > 0, "No liquidity to remove.");
+        liquidityAmount[msg.sender] = 0;
+
+        (uint256 usdtAmount, uint256 tokenAmount) = _removeLiquidity(_liquidity);
+        if (usdtAmount > 0) TransferHelper.safeTransfer(USDT, msg.sender, usdtAmount);
+        if (tokenAmount > 0) _handleReceivedLiquidity(tokenAmount);
+    }
+
+    function _removeLiquidity(uint256 liquidity) internal returns (uint256, uint256) {
+        _safeApprove(lp, uniswapV2Router, liquidity);
+
+        return IUniswapV2Router02(uniswapV2Router).removeLiquidity(
             USDT, 
-            amountToken, 
-            amountUsdt, 
+            token, 
+            liquidity, 
             0, 
             0, 
             address(this), 
             block.timestamp
         );
-        liquidityAmount[msg.sender] += _liquidity;
-        if(amountUsdt > _amountUsdt) TransferHelper.safeTransfer(USDT, msg.sender, amountUsdt - _amountUsdt); 
-        if(amountToken > _amountToken) TransferHelper.safeTransfer(token, DEAD, amountToken - _amountToken);
     }
 
-    // function serchLiquidityBalance(address _user) external view returns(uint256){
-    //     return IERC20(lp).balanceOf(_user);
-    // }
+    function _handleReceivedLiquidity(uint256 tokenAmount) internal {
+        uint256 half = tokenAmount / 2;
+        uint256 remaining = tokenAmount - half;
+
+        TransferHelper.safeTransfer(token, DEAD, half);
+
+        // 内部调用替代 try-catch 外部调用
+        uint256 usdtAmount = _swapTokensForUSDT(remaining);
+        if (usdtAmount > 0) {
+            _addLiquidity(remaining, usdtAmount);
+        } else {
+            TransferHelper.safeTransfer(token, DEAD, remaining);
+        }
+    }
 
 
-    // function removeLiquidityOfRaiseFunds() external {
-    //     uint256 _liquidity = liquidityAmount[msg.sender];
-    //     require(_liquidity > 0, "No liquidity to remove.");
-    //     liquidityAmount[msg.sender] = 0;
+    function _swapTokensForUSDT(uint256 amount) internal returns (uint256) {
+        if (amount == 0) return 0;
 
-    //     (uint256 usdtAmount, uint256 tokenAmount) = _removeLiquidity(_liquidity);
-    //     if (usdtAmount > 0) TransferHelper.safeTransfer(USDT, msg.sender, usdtAmount);
-    //     if (tokenAmount > 0) _handleReceivedLiquidity(tokenAmount);
-    // }
+        _safeApprove(token, uniswapV2Router, amount);
 
-    // function _removeLiquidity(uint256 liquidity) internal returns (uint256, uint256) {
-    //     _safeApprove(lp, uniswapV2Router, liquidity);
+        address[] memory path = new address[](2);
+        path[0] = token;
+        path[1] = USDT;
 
-    //     return IUniswapV2Router02(uniswapV2Router).removeLiquidity(
-    //         USDT, 
-    //         token, 
-    //         liquidity, 
-    //         0, 
-    //         0, 
-    //         address(this), 
-    //         block.timestamp
-    //     );
-    // }
+        uint256 beforeBalance = IERC20(USDT).balanceOf(address(this));
 
-    // function _handleReceivedLiquidity(uint256 tokenAmount) internal {
-    //     uint256 half = tokenAmount / 2;
-    //     uint256 remaining = tokenAmount - half;
+        IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amount, 
+            0, 
+            path, 
+            address(this), 
+            block.timestamp
+        );
 
-    //     TransferHelper.safeTransfer(token, DEAD, half);
+        uint256 afterBalance = IERC20(USDT).balanceOf(address(this));
+        return afterBalance - beforeBalance;
+    }
 
-    //     // 内部调用替代 try-catch 外部调用
-    //     uint256 usdtAmount = _swapTokensForUSDT(remaining);
-    //     if (usdtAmount > 0) {
-    //         _addLiquidity(remaining, usdtAmount);
-    //     } else {
-    //         TransferHelper.safeTransfer(token, DEAD, remaining);
-    //     }
-    // }
+    function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) internal {
+        _safeApprove(token, uniswapV2Router, tokenAmount);
+        _safeApprove(USDT, uniswapV2Router, usdtAmount);
 
-
-    // function _swapTokensForUSDT(uint256 amount) internal returns (uint256) {
-    //     if (amount == 0) return 0;
-
-    //     _safeApprove(token, uniswapV2Router, amount);
-
-    //     address[] memory path = new address[](2);
-    //     path[0] = token;
-    //     path[1] = USDT;
-
-    //     uint256 beforeBalance = IERC20(USDT).balanceOf(address(this));
-
-    //     IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
-    //         amount, 
-    //         0, 
-    //         path, 
-    //         address(this), 
-    //         block.timestamp
-    //     );
-
-    //     uint256 afterBalance = IERC20(USDT).balanceOf(address(this));
-    //     return afterBalance - beforeBalance;
-    // }
-
-    // function _addLiquidity(uint256 tokenAmount, uint256 usdtAmount) internal {
-    //     _safeApprove(token, uniswapV2Router, tokenAmount);
-    //     _safeApprove(USDT, uniswapV2Router, usdtAmount);
-
-    //     IUniswapV2Router02(uniswapV2Router).addLiquidity(
-    //         token, 
-    //         USDT, 
-    //         tokenAmount, 
-    //         usdtAmount, 
-    //         0, 
-    //         0, 
-    //         DEAD, 
-    //         block.timestamp
-    //     );
-    // }
+        IUniswapV2Router02(uniswapV2Router).addLiquidity(
+            token, 
+            USDT, 
+            tokenAmount, 
+            usdtAmount, 
+            0, 
+            0, 
+            DEAD, 
+            block.timestamp
+        );
+    }
 
     
 

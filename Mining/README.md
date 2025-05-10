@@ -31,9 +31,9 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 ```
 
 
-### token地址:0xD2BA42CDfd7398f8D07D5f408702Cb41175455B8
-### lp地址:0x6437BB2ffd542A7a933E5dADD76c06bC3552AFC3
-### 挖矿合约地址:0x033FCD725F5Cb85808792BD679B14fB53e8E134e
+### token地址:0x97729508F3B8F569194F9892D2DA0af2B968c740
+### lp地址:0x31192FfCeb770bd90AeE8CF148F7f81D070c8dbE
+### 挖矿合约地址:0xFd5200423B254Ee2b2DCb58208CDAC62361fAF65
 
 
 ### 挖矿合约ABI:./out/Mining.sol/Mining.json
@@ -68,100 +68,10 @@ function removeLiquidity(uint256 _liquidity) external;
 
 //用户使用usdt进行前期认购,amountUsdt是usdt的数量，这里usdt需要对挖矿合约进行授权
 function raisefunds(uint256 amountUsdt) external;
-//前期认购的用户移除流动性，需要lp对当前合约进行授权，没有参数默认移除全部
+//前期认购的用户移除流动性，这里lp不需要对挖矿合约进行授权
 function removeLiquidityOfRaiseFunds() external;
 //查询前期认购用户获得lp数量，移除的时候也默认移除这里的全部数量
 function liquidityAmount(address _user) external view returns(uint256);
 
 ```
 
-
-### 挖矿旧版本合约方法
-```solidity
-    //分别对应0、1、2、3、4、5，总共5个级别，返回的是数字，对应到级别上
-    enum Level{INVALID,V1,V2,V3,V4,V5}
-
-    //订单信息
-    struct StakingOrder{
-        address holder; //当前订单的拥有者，谁质押的
-        uint256 amount; //当前订单质押的token数量
-        uint256 stakingTime; //当前订单的质押时间
-        bool    isExtracted; //当前订单是否已赎回
-    }
-
-    //奖励记录
-    struct AwardRecord{
-        address invitee;    //被邀请的地址，或者说质押者地址
-        uint256 stakingAmount; //质押的数量
-        uint256 awardAmount;    //给当前用户奖励的数量
-        uint256 awardTime;      //奖励时间
-        bool    isLevelAward;  //是否是级别(V1-V5)奖励，否的话就是层级奖励
-    }
-
-//获取用户信息
-/**
-* user:要查询的钱包地址
-* _inviter:user的邀请人地址
-* _award:当前用户通过邀请获得奖励数量
-* _level:当前用户的级别
-* _validOrderIndexes:当前用户质押的有效订单Id
-* _orderIndexes:当前用户质押的所有订单，包括有效无效
-* _invitees:当前用户直推的所有人地址
-* _awardRecords:当前用户得到奖励(award)的记录，包括级别和层级两种奖励
-*/
-function getUserInfo(address _user) external view returns(
-        address _inviter,
-        uint256 _award,
-        uint256 _usdtValue, //新增字段，表示团队业绩，单位usdt
-        Level _level,
-        uint256[] memory _validOrderIndexes,
-        uint256[] memory _orderIndexes,
-        address[] memory _invitees,
-        AwardRecord[] memory _awardRecords
-    );
-//绑定邀请人地址，inviter是邀请人地址，这里邀请邀请人必须质押过才可以邀请别人
-function bindInviter(address inviter) external;
-//amountToken是token数量，返回的amountUsdt是usdt数量
-function getQuoteAmount(uint256 amountToken) public view returns(uint256 amountUsdt);
-//用户质押amountToken是token数量，要求100u以上质押，是否满足该条件通过上面getQuoteAmount函数判断
-function staking(uint256 amountToken) external;
-//获取订单详情，通过getUserInfo获取到用户的订单Id，再传入订单Id(orderId)获取订单详情结构体StakingOrder，字段在最上面已经做了标识
-function stakingOrderInfo(uint256 orderId) external view returns(StakingOrder memory);
-//一个订单30天，通过订单Id(orderId)获取订单的倒计时
-function getOrderCountdown(uint256 orderIndex) public view returns (uint256);
-//传入订单Id(orderId)，获取该订单截止目前的总收益
-function getOrderRealTimeYield(uint256 orderIndex) public view returns (uint256);
-//传入用户地址userAddr，可以获取用户所有的订单收益总和，不建议给用户展示
-function getUserRealTimeYield(address userAddr) external view returns (uint256 total);
-//赎回或提取订单，传入订单Id(orderIndex)即可提取该订单的本金与收益
-function claimOrder(uint256 orderIndex) external;
-//提取邀请获得的奖励，amount传入要提取的token奖励数量
-function claimAward(uint256 amount) external;
-//获取用户质押所有有效订单质押的代币总数量
-function getUserValidStakingAmount(address userAddr) external view returns (uint256 totalAmount);
-//获取个人业绩，返回值单位usdt
-function getUserValidStakingAmountForUsdt(address userAddr) external view returns (uint256 totalUsdt);
-
-
-
-
-//添加流动性，用户输入代币数量amountToken，然后自动扣除其钱包中的usdt，usdt数量展示通过getQuoteAmount函数获取，返回值不用管，这里token和usdt都需要对挖矿合约进行授权，之前的订单质押需要token对挖矿合约进行授权
-function addLiquidity(uint256 amountToken) external returns(uint256 _amountToken, uint256 _amountUsdt, uint256 _liquidityAmount);
-
-//查询用户的lp余额
-function serchLiquidityBalance(address _user) external view returns(uint256);
-
-//移除流动性，_liquidity流动性lp数量，这里lp要对挖矿合约授权
-function removeLiquidity(uint256 _liquidity) external;
-
-
-//用户使用usdt进行前期认购,amountUsdt是usdt的数量，这里usdt需要对挖矿合约进行授权
-function raisefunds(uint256 amountUsdt) external;
-//前期认购的用户移除流动性，需要lp对当前合约进行授权，没有参数默认移除全部
-function removeLiquidityOfRaiseFunds() external;
-//查询前期认购用户获得lp数量，移除的时候也默认移除这里的全部数量
-function liquidityAmount(address _user) external view returns(uint256);
-
-```
-
-#### 注:更新合约地址更新abi，因为新增了三个用户认购的方法
