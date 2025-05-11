@@ -23,6 +23,7 @@ interface IStaking {
     struct User{
         address inviter;  
         uint256 award;
+        uint256 grades;
         uint256[] stakingOrdersIndexes;
         address[] invitees;
         AwardRecord[] awardRecords;

@@ -86,7 +86,7 @@ contract StakingTest is Test, IStaking {
         test_staking();
         // user info 
         (
-            address _inviter,,
+            address _inviter,,,
             uint256[] memory _validOrderIndexes,
             uint256[] memory _allOrderIndexes,,
         ) = staking.getUserInfo(user);
@@ -95,7 +95,7 @@ contract StakingTest is Test, IStaking {
         assertEq(_allOrderIndexes.length, 1);
         // initialInviter info
         (
-            ,uint256 _award,,,,
+            ,uint256 _award,,,,,
             AwardRecord[] memory _awardRecords
         ) = staking.getUserInfo(initialInviter);
         assertEq(_award, 1e18 * 8 / 100);
@@ -180,7 +180,7 @@ contract StakingTest is Test, IStaking {
 
     function test_claimAward() public {
         test_staking();
-        (,uint256 _award,,,,) = staking.getUserInfo(initialInviter);
+        (,uint256 _award,,,,,) = staking.getUserInfo(initialInviter);
         vm.startPrank(initialInviter);
         staking.claimAward(_award);
 

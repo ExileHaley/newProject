@@ -15,17 +15,19 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
+$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 
 ### love合约地址:0xf453560309713fE5480474432f0af56b15Dd51D0
 ### best合约地址:0xDf71a9F5d2DD419f43b1C05Ce33B74F39De8eB12
 ### 邀请首码:0xD1AE2c6C123951DA80a417FAC3451D768C12F825
+### staking正式版本合约:0x89Da573B070bF3F7797D12AE4E676e3ABD9BDA47
+
 ### staking合约地址:0xf8886244a8C5eB6002C4f14fB93B10687824017a
 
 ### staking合约ABI:./out/Staking.sol/Staking.json
-### 记得要更新ABI，然后新增了一个isValidInviter方法，判断邀请地址是否有效
+### 记得要更新ABI，getUserInfo中新增了一个字段_grades，表示个人两层推荐业绩
 
 ### staking合约方法
 ```solidity
@@ -47,11 +49,11 @@ $ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.
 function isValidInviter(address _inviter) external view returns (bool);
 //传入订单编号返回订单详情，orderIndex订单编号
 function stakingOrderInfo(uint256 orderIndex) external view returns(StakingOrder);
-//查询用户信息，_user用户地址，_inviter当前用户的邀请人，_award通过邀请获得的love奖励，_validOrderIndexes用户所有没有赎回的订单编号
-//_allOrderIndexes用户所有的订单编号，包括赎回和质押中的，_invitees当前用户邀请了哪些用户，_awardRecords返回的是AwardRecord数组，是用户的love奖励记录
+//查询用户信息，_user用户地址，_inviter当前用户的邀请人，_award通过邀请获得的love奖励，_grades两层业绩总额love，_validOrderIndexes用户所有没有赎回的订单编号，_allOrderIndexes用户所有的订单编号，包括赎回和质押中的，_invitees当前用户邀请了哪些用户，_awardRecords返回的是AwardRecord数组，是用户的love奖励记录
 function getUserInfo(address _user) external view returns(
         address _inviter,
         uint256 _award,
+        uint256 _grades,
         uint256[] memory _validOrderIndexes,
         uint256[] memory _allOrderIndexes,
         address[] memory _invitees,

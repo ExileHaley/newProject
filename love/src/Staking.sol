@@ -81,6 +81,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
     function getUserInfo(address _user) external view returns(
         address _inviter,
         uint256 _award,
+        uint256 _grades,
         uint256[] memory _validOrderIndexes,
         uint256[] memory _allOrderIndexes,
         address[] memory _invitees,
@@ -89,6 +90,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
         User memory user = userInfo[_user];
         _inviter = user.inviter;
         _award = user.award;
+        _grades = user.grades;
         _invitees = user.invitees;
         _awardRecords = user.awardRecords;
         _allOrderIndexes = user.stakingOrdersIndexes;
@@ -137,6 +139,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
     function updateAward(address _user, uint256 _amount) internal {
         address _inviter = userInfo[_user].inviter;
         if(_inviter != address(0)){
+            userInfo[_inviter].grades += _amount;
             userInfo[_inviter].award += _amount * 8 / 100;
             userInfo[_inviter].awardRecords.push(AwardRecord({
                 invitee: _user,
@@ -147,6 +150,7 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, IStaking
 
             address _upInviter = userInfo[_inviter].inviter;
             if(_upInviter != address(0)){
+                userInfo[_upInviter].grades += _amount;
                 userInfo[_upInviter].award += _amount * 5 / 100;
                 userInfo[_upInviter].awardRecords.push(AwardRecord({
                     invitee: _user,
