@@ -24,8 +24,6 @@ $ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.x
 ### 邀请首码:0xD1AE2c6C123951DA80a417FAC3451D768C12F825
 ### staking正式版本合约:0x89Da573B070bF3F7797D12AE4E676e3ABD9BDA47
 
-### staking合约地址:0xf8886244a8C5eB6002C4f14fB93B10687824017a
-
 ### staking合约ABI:./out/Staking.sol/Staking.json
 ### 记得要更新ABI，getUserInfo中新增了一个字段_grades，表示个人两层推荐业绩
 
