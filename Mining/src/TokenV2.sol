@@ -834,30 +834,38 @@ contract TokenV2 is ERC20, Ownable{
 
 
 
-    function _isAddLiquidityV2() internal  view returns (bool, uint256) {
-        (uint r0, uint r1,) = IUniswapV2Pair(pancakePair).getReserves();
-        address token0 = IUniswapV2Pair(pancakePair).token0();
-        address token1 = IUniswapV2Pair(pancakePair).token1();
-        uint bal0 = IERC20(token0).balanceOf(pancakePair);
-        uint bal1 = IERC20(token1).balanceOf(pancakePair);
-        
-        bool ldxAdd;
-        uint256 otherAmount;
-        if (token0 == address(this)) {
-            // 当前代币是 token0，对比余额与储备
-            if (bal1 > r1) {
-                otherAmount = bal1 - r1;
-                ldxAdd = otherAmount >= 1e18;
-            }
-        } else {
-            // 当前代币是 token1
-            if (bal0 > r0) {
-                otherAmount = bal0 - r0;
-                ldxAdd = otherAmount >= 1e18;
-            }
-        }
-        return (ldxAdd, otherAmount);
+    function _isAddLiquidityV2()internal view returns(bool ldxAdd, uint256 otherAmount){
+
+        address token0 = IUniswapV2Pair(address(pancakePair)).token0();
+        (uint r0,,) = IUniswapV2Pair(address(pancakePair)).getReserves();
+        uint bal0 = IERC20(token0).balanceOf(address(pancakePair));
+        if( token0 != address(this) ){
+			if( bal0 > r0){
+                //这次添加流动性增加的usdt的数量
+				otherAmount = bal0 - r0;
+				ldxAdd = otherAmount > 10**15;
+			}
+		}
     }
+
+    // function _isAddLiquidityV2(address mssender)
+    //     internal
+    //     view
+    //     returns (bool ldxAdd, uint256 otherAmount)
+    // {
+    //     if (mssender != address(0x10ED43C718714eb63d5aA57B78B54704E256024E)) {
+    //         return (false, 0);
+    //     }
+    //     address token0 = IUniswapV2Pair(address(uniswapV2Pair)).token0();
+    //     (uint256 r0, , ) = IUniswapV2Pair(address(uniswapV2Pair)).getReserves();
+    //     uint256 bal0 = IBEP20(token0).balanceOf(address(uniswapV2Pair));
+    //     if (token0 != address(this)) {
+    //         if (bal0 > r0) {
+    //             otherAmount = bal0 - r0;
+    //             ldxAdd = otherAmount >= 10**14;
+    //         }
+    //     }
+    // }
 
 
     function _isDelLiquidityV2()internal view returns(bool ldxDel, bool bot, uint256 otherAmount){
@@ -913,6 +921,8 @@ contract TokenV2 is ERC20, Ownable{
                 } else {
                     // 非订阅地址：必须是初始添加者
                     require(lpOriginalOwner[to] == to, "Not original LP provider");
+                    super._transfer(from, to, value);
+                    return;
                 }
             }
         emit DebugDelLiquidity(from, to, value, isDel);
