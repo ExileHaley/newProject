@@ -781,11 +781,6 @@ contract TokenV2 is ERC20, Ownable{
         MIN_ADD_LIQUIDITY = _minAddLiquidity;
     }
 
-    function setMinLimit(uint256 _minLiquidity, uint256 _minAward) external onlyOwner {
-        MIN_LIQUIDITY = _minLiquidity;
-        MIN_PROCESS_AWARD = _minAward;
-    }
-
     function setMining(address _mining) external onlyOwner {
         require(_mining != address(0), "Mining address cannot be zero");
         mining = _mining;
