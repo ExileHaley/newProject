@@ -730,7 +730,7 @@ contract TokenV2 is ERC20, Ownable{
     uint256 public txFee;
     uint256 private currentIndex;
     
-    uint256 public constant MAX_BUY_USDT = 500e18;
+    uint256 public MAX_BUY_USDT = 500e18;
 
     uint256 public MIN_PROCESS_AWARD = 1300e18;
     uint256 public MIN_LIQUIDITY = 50e18;
@@ -775,10 +775,11 @@ contract TokenV2 is ERC20, Ownable{
         atTheOpeningOrder = block.timestamp;
     }
 
-    function setLimitConfig(uint256 _minLiquidity,uint256 _minProcessAward, uint256 _minAddLiquidity) external onlyOwner {
+    function setLimitConfig(uint256 _minLiquidity,uint256 _minProcessAward, uint256 _minAddLiquidity, uint256 _maxBuyUsdt) external onlyOwner {
         MIN_LIQUIDITY = _minLiquidity;
         MIN_PROCESS_AWARD = _minProcessAward;
         MIN_ADD_LIQUIDITY = _minAddLiquidity;
+	MAX_BUY_USDT = _maxBuyUsdt;
     }
 
     function setMining(address _mining) external onlyOwner {
