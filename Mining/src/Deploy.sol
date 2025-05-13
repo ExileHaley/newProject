@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 import {TokenV2} from "./TokenV2.sol";
 
-contract DeployFactory {
+contract Deploy {
     address public deployedAddress;
     address public constant usdt = 0x55d398326f99059fF775485246999027B3197955;
 

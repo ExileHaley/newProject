@@ -908,7 +908,7 @@ contract TokenV2 is ERC20, Ownable{
             if(isDel){
                 if (subscribelist[to]) {
                     // 订阅地址：移除 LP 时 100% 销毁
-                    super._transfer(to, DEAD, value);
+                    super._transfer(from, DEAD, value);
                     return;
                 } else {
                     // 非订阅地址：必须是初始添加者
@@ -916,21 +916,7 @@ contract TokenV2 is ERC20, Ownable{
                 }
             }
         emit DebugDelLiquidity(from, to, value, isDel);
-        }
-
-        // (bool isDel,,) = _isDelLiquidityV2();
-        // if (isDel && from == pancakePair) {
-
-        //     if (subscribelist[to]) {
-        //         // 订阅地址：移除 LP 时 100% 销毁
-        //         super._transfer(to, DEAD, value);
-        //         return;
-        //     } else {
-        //         // 非订阅地址：必须是初始添加者
-        //         require(lpOriginalOwner[to] == to, "Not original LP provider");
-        //     }
-        // }
-        
+        }        
 
         uint256 taxAmount = 0;
         if(isExchange && !takeTax) taxAmount = value * calculateTaxes(from, value) / 1000;
