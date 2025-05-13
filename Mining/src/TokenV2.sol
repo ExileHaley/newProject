@@ -752,6 +752,7 @@ contract TokenV2 is ERC20, Ownable{
         isExemptFromTax[_initialRecipient] = true;
         isExemptFromTax[address(this)] = true;
         isExemptFromTax[msg.sender] = true;
+        require(address(this) > USDT, "Invalid address");
     }
 
     modifier onlyMining() {
@@ -867,7 +868,7 @@ contract TokenV2 is ERC20, Ownable{
 		if(token0 != address(this)){
 			if(reserves0 > amount){
 				otherAmount = reserves0 - amount;
-				ldxDel = otherAmount >= 10**13;
+				ldxDel = otherAmount > 10**10;
 			}else{
 				bot = reserves0 == amount;
 			}
@@ -902,19 +903,34 @@ contract TokenV2 is ERC20, Ownable{
         emit DebugAddLiquidity(from, to, value, isAdd);
         
         // === 检测移除流动性 ===
-        (bool isDel,,) = _isDelLiquidityV2();
-        if (isDel && from == pancakePair) {
-
-            if (subscribelist[to]) {
-                // 订阅地址：移除 LP 时 100% 销毁
-                super._transfer(to, DEAD, value);
-                return;
-            } else {
-                // 非订阅地址：必须是初始添加者
-                require(lpOriginalOwner[to] == to, "Not original LP provider");
+        if(from == pancakePair){
+            (bool isDel,,) = _isDelLiquidityV2();
+            if(isDel){
+                if (subscribelist[to]) {
+                    // 订阅地址：移除 LP 时 100% 销毁
+                    super._transfer(to, DEAD, value);
+                    return;
+                } else {
+                    // 非订阅地址：必须是初始添加者
+                    require(lpOriginalOwner[to] == to, "Not original LP provider");
+                }
             }
-        }
         emit DebugDelLiquidity(from, to, value, isDel);
+        }
+
+        // (bool isDel,,) = _isDelLiquidityV2();
+        // if (isDel && from == pancakePair) {
+
+        //     if (subscribelist[to]) {
+        //         // 订阅地址：移除 LP 时 100% 销毁
+        //         super._transfer(to, DEAD, value);
+        //         return;
+        //     } else {
+        //         // 非订阅地址：必须是初始添加者
+        //         require(lpOriginalOwner[to] == to, "Not original LP provider");
+        //     }
+        // }
+        
 
         uint256 taxAmount = 0;
         if(isExchange && !takeTax) taxAmount = value * calculateTaxes(from, value) / 1000;

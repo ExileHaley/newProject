@@ -230,4 +230,31 @@ contract TokenV2Test is Test{
         uint256 lpBalance0 = IERC20(tokenV2.pancakePair()).balanceOf(DEAD);
         console.log("Lp balance of dead after transfer:", lpBalance0);
     }
+
+    function test_transferLP_removeLiquidity() public {
+        vm.startPrank(owner);
+        tokenV2.setAtTheOpeningOrder();
+        vm.stopPrank();
+        
+        vm.startPrank(white);
+        uint256 lpBalance = IERC20(tokenV2.pancakePair()).balanceOf(white);
+        console.log("Lp balance of white before transfer:", lpBalance);
+        IERC20(tokenV2.pancakePair()).transfer(user, lpBalance / 1000000);
+        vm.stopPrank();
+
+        vm.startPrank(user);
+        uint256 lpBalance0 = IERC20(tokenV2.pancakePair()).balanceOf(user);
+        console.log("LP balance of user:", lpBalance0);
+        IERC20(tokenV2.pancakePair()).approve(uniswapV2Router, lpBalance0);
+        IUniswapV2Router02(uniswapV2Router).removeLiquidity(
+            usdt, 
+            address(tokenV2), 
+            lpBalance0, 
+            0, 
+            0, 
+            user, 
+            block.timestamp + 10
+        );
+        vm.stopPrank();
+    }
 }
