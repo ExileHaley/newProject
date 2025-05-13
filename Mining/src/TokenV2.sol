@@ -898,17 +898,16 @@ contract TokenV2 is ERC20, Ownable{
         bool takeTax = isExemptFromTax[from] || isExemptFromTax[to];
         
         // === 检测添加流动性 ===
-        (bool isAdd, ) = _isAddLiquidityV2();
-        if (isAdd && to == pancakePair) {
-            if (isAdd && to == pancakePair) {
+        if(to == pancakePair){
+            (bool isAdd, ) = _isAddLiquidityV2();
+            if(isAdd){
                 if (lpOriginalOwner[from] == address(0)) {
                     lpOriginalOwner[from] = from;   
-                }
+                }  
             }
-
-        }
-
         emit DebugAddLiquidity(from, to, value, isAdd);
+        }
+        
         
         // === 检测移除流动性 ===
         if(from == pancakePair){
