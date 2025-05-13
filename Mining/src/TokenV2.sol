@@ -780,7 +780,7 @@ contract TokenV2 is ERC20, Ownable{
         MIN_LIQUIDITY = _minLiquidity;
         MIN_PROCESS_AWARD = _minProcessAward;
         MIN_ADD_LIQUIDITY = _minAddLiquidity;
-	MAX_BUY_USDT = _maxBuyUsdt;
+	    MAX_BUY_USDT = _maxBuyUsdt;
     }
 
     function setMining(address _mining) external onlyOwner {
@@ -1074,5 +1074,6 @@ contract TokenV2 is ERC20, Ownable{
     function getHolders() external view returns (address[] memory) {
         return holders;
     }
+
 
 }
