@@ -116,6 +116,36 @@ contract TokenV2Test is Test{
         vm.stopPrank();
         console.log("Original owner lp for user:", tokenV2.lpOriginalOwner(user));
     }
+    
+    function test_not_whitelist_addLiquidity1() public {
+        vm.startPrank(owner);
+        tokenV2.setAtTheOpeningOrder();
+        vm.stopPrank();
+        address user1 = address(0x6);
+        vm.startPrank(initialRecipient);
+        tokenV2.transfer(user1, 100e18);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        // uint256 amountUsdt = tokenV2.getAmountOutUSDT(100e18);
+        deal(usdt, user1, 100e18);
+        tokenV2.approve(uniswapV2Router, 100e18);
+        IERC20(usdt).approve(uniswapV2Router, 100e18);
+        IUniswapV2Router02(uniswapV2Router).addLiquidity(
+            usdt, 
+            address(tokenV2), 
+            100e18, 
+            100e18, 
+            0, 
+            0, 
+            user1, 
+            block.timestamp + 10
+        );
+
+        vm.stopPrank();
+        console.log("Original owner lp for user1:", tokenV2.lpOriginalOwner(user1));
+    }
+
 
     // function test_whitelist_removeLiquidity() public {
     //     uint256 lpBalance = IERC20(tokenV2.pancakePair()).balanceOf(white);
