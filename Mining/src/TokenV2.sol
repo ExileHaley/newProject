@@ -738,9 +738,9 @@ contract TokenV2 is ERC20, Ownable{
     }
 
     // event DebugDelLiquidity(address from, address to, uint256 amount, bool isDel);
-
+    event DebugLiquidity(address msgSender, address to);
     function _transfer(address from, address to, uint256 value) internal override{
-
+        emit DebugLiquidity(msg.sender, to);
         if (from == address(0) || to == address(0)) {
             super._transfer(from, to, value);
             return;
