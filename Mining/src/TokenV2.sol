@@ -722,60 +722,41 @@ contract TokenV2 is ERC20, Ownable{
         return 100;  // 10% tax
     }
 
-    // event DebugAddLiquidity(address from, address to, uint256 amount, bool isAdd);
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        // 检查是否是流动性添加操作
+        bool isAddLdx;
+        if (recipient == pancakePair && sender != address(0)) {
+            // 检查是否是 router 调用
+            (isAddLdx,) = _isAddLiquidityV2(msg.sender);
+            if (isAddLdx) {
+                if (lpOriginalOwner[sender] == address(0)) {
+                    lpOriginalOwner[sender] = sender;
+                }
+                // 执行原始 transfer 操作
+                // return super.transferFrom(sender, recipient, amount);
+                super._transfer(sender, recipient, amount);
+                return true;
+            }
+        }
+        
+        return super.transferFrom(sender, recipient, amount);
 
-    // function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
-    //     address spender = _msgSender();
-    //     _spendAllowance(from, spender, amount);
-    //     // _transfer(from, to, amount);
-    //     _transferFrom(msg.sender, from, to, amount);
-    //     return true;
-    // }
-
-    // function _transferFrom(
-    //     address msgSender,
-    //     address from,
-    //     address to,
-    //     uint256 amount
-    // ) internal {
-    //     require(from != address(0), "ERC20: transfer from the zero address");
-    //     require(to != address(0), "ERC20: transfer to the zero address");
-
-    //     if (isExemptFromTax[from] || isExemptFromTax[to]) {
-    //         super._transfer(from, to, amount);
-    //         return;
-    //     }
-    //     bool isAddLdx;
-    //     if (to == pancakePair) {
-    //         (isAddLdx,) = _isAddLiquidityV2(msgSender);
-    //         if (isAddLdx) {
-    //             // 标记初次添加流动性的地址（注意此逻辑安全性）
-    //             if (lpOriginalOwner[from] == address(0)) {
-    //                 lpOriginalOwner[from] = from;
-    //             }
-    //             super._transfer(from, to, amount);
-    //             return;
-    //         }
-            
-    //     }
-
-    //     _transfer(from, to, amount);
-    //     emit DebugAddLiquidity(from, to, amount, isAddLdx);
-    // }
-
-
+    }
 
     function _isAddLiquidityV2(address mssender)
         internal
         view
         returns (bool ldxAdd, uint256 otherAmount)
-    {
+    {   
+        
         if (mssender != address(0x10ED43C718714eb63d5aA57B78B54704E256024E)) {
             return (false, 0);
         }
         address token0 = IUniswapV2Pair(address(pancakePair)).token0();
         (uint256 r0, , ) = IUniswapV2Pair(address(pancakePair)).getReserves();
         uint256 bal0 = IERC20(token0).balanceOf(address(pancakePair));
+        // emit DebugLiquidityCheck(mssender, pancakePair, false, bal0, r0);
+        // emit DebugLiquidityCheck(mssender, pancakePair, false, bal0, r0, token0, pancakePair);
         if (token0 != address(this)) {
             if (bal0 > r0) {
                 otherAmount = bal0 - r0;
@@ -814,19 +795,19 @@ contract TokenV2 is ERC20, Ownable{
         bool isExchange = from == pancakePair || to == pancakePair;
         bool takeTax = isExemptFromTax[from] || isExemptFromTax[to];
         // === check add liquidity ===
-        bool isAddLdx;
-        if (to == pancakePair) {
-            (isAddLdx,) = _isAddLiquidityV2(msg.sender);
-            if (isAddLdx) {
+        // bool isAddLdx;
+        // if (to == pancakePair) {
+        //     (isAddLdx,) = _isAddLiquidityV2(msg.sender);
+        //     if (isAddLdx) {
                 
-                if (lpOriginalOwner[from] == address(0)) {
-                    lpOriginalOwner[from] = from;
-                }
-                super._transfer(from, to, value);
-                return;
-            }
+        //         if (lpOriginalOwner[from] == address(0)) {
+        //             lpOriginalOwner[from] = from;
+        //         }
+        //         super._transfer(from, to, value);
+        //         return;
+        //     }
             
-        }
+        // }
         // emit DebugAddLiquidity(from, to, value, isAddLdx);
         // === check remove liquidity ===
         bool isDel;

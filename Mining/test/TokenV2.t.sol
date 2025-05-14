@@ -98,14 +98,14 @@ contract TokenV2Test is Test{
         vm.stopPrank();
 
         vm.startPrank(user);
-        // uint256 amountUsdt = tokenV2.getAmountOutUSDT(100e18);
-        deal(usdt, user, 100e18);
+        uint256 amountUsdt = tokenV2.getAmountOutUSDT(100e18);
+        deal(usdt, user, amountUsdt);
         tokenV2.approve(uniswapV2Router, 100e18);
-        IERC20(usdt).approve(uniswapV2Router, 100e18);
+        IERC20(usdt).approve(uniswapV2Router, amountUsdt);
         IUniswapV2Router02(uniswapV2Router).addLiquidity(
             usdt, 
             address(tokenV2), 
-            100e18, 
+            amountUsdt, 
             100e18, 
             0, 
             0, 
