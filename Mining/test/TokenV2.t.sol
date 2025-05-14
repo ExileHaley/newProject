@@ -147,6 +147,61 @@ contract TokenV2Test is Test{
     }
 
 
+    function buy(address buyer, uint256 amountUsdt) internal{
+        vm.startPrank(buyer);
+        deal(usdt, buyer, amountUsdt);
+        IERC20(usdt).approve(uniswapV2Router, amountUsdt);
+        address[] memory path = new address[](2);
+        path[0] = usdt;
+        path[1] = address(tokenV2);
+        IUniswapV2Router02(uniswapV2Router).swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amountUsdt,
+            0,
+            path,
+            buyer,
+            block.timestamp + 10
+        );
+        vm.stopPrank();
+    }
+
+    function addLiquidity(address addr, uint256 amountToken, uint256 amountUsdt) internal{
+        vm.startPrank(addr);
+        deal(usdt, addr, amountUsdt);
+        tokenV2.approve(uniswapV2Router, amountToken);
+        IERC20(usdt).approve(uniswapV2Router, amountUsdt);
+        IUniswapV2Router02(uniswapV2Router).addLiquidity(
+            usdt, 
+            address(tokenV2), 
+            amountUsdt, 
+            amountToken, 
+            0, 
+            0, 
+            addr, 
+            block.timestamp + 10
+        );
+        vm.stopPrank();
+        // console.log("Lp owner of ????:", tokenV2.lpOriginalOwner(addr));
+    }
+
+
+    function test_after_buy_addLiquidty() public {
+        vm.startPrank(owner);
+        tokenV2.setAtTheOpeningOrder();
+        vm.stopPrank();
+
+        address user2 = address(0x7);
+        
+        buy(user2, 100e18);
+        uint256 amountToken = tokenV2.balanceOf(user2);
+        uint256 amountUsdt = tokenV2.getAmountOutUSDT(amountToken);
+        addLiquidity(user2, amountToken, amountUsdt);
+
+        console.log("Lp owner of ????:", tokenV2.lpOriginalOwner(user2));
+
+    }
+    
+
+
     // function test_whitelist_removeLiquidity() public {
     //     uint256 lpBalance = IERC20(tokenV2.pancakePair()).balanceOf(white);
     //     vm.startPrank(white);
