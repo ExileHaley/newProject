@@ -722,60 +722,46 @@ contract TokenV2 is ERC20, Ownable{
         return 100;  // 10% tax
     }
 
+    // event DebugAddLiquidity(address from, address to, uint256 amount, bool isAdd);
 
-
-    // function _isAddLiquidityV2()internal view returns(bool ldxAdd, uint256 otherAmount){
-
-    //     address token0 = IUniswapV2Pair(address(pancakePair)).token0();
-    //     (uint r0,,) = IUniswapV2Pair(address(pancakePair)).getReserves();
-    //     uint bal0 = IERC20(token0).balanceOf(address(pancakePair));
-    //     if( token0 != address(this) ){
-	// 		if( bal0 > r0){
-    //             //这次添加流动性增加的usdt的数量
-	// 			otherAmount = bal0 - r0;
-	// 			ldxAdd = otherAmount > 10**15;
-	// 		}
-	// 	}
+    // function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
+    //     address spender = _msgSender();
+    //     _spendAllowance(from, spender, amount);
+    //     // _transfer(from, to, amount);
+    //     _transferFrom(msg.sender, from, to, amount);
+    //     return true;
     // }
-    event DebugAddLiquidity(address from, address to, uint256 amount, bool isAdd);
 
-    function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
-        address spender = _msgSender();
-        _spendAllowance(from, spender, amount);
-        // _transfer(from, to, amount);
-        _transferFrom(msg.sender, from, to, amount);
-        return true;
-    }
+    // function _transferFrom(
+    //     address msgSender,
+    //     address from,
+    //     address to,
+    //     uint256 amount
+    // ) internal {
+    //     require(from != address(0), "ERC20: transfer from the zero address");
+    //     require(to != address(0), "ERC20: transfer to the zero address");
 
-    function _transferFrom(
-        address msgSender,
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
-        require(from != address(0), "ERC20: transfer from the zero address");
-        require(to != address(0), "ERC20: transfer to the zero address");
+    //     if (isExemptFromTax[from] || isExemptFromTax[to]) {
+    //         super._transfer(from, to, amount);
+    //         return;
+    //     }
+    //     bool isAddLdx;
+    //     if (to == pancakePair) {
+    //         (isAddLdx,) = _isAddLiquidityV2(msgSender);
+    //         if (isAddLdx) {
+    //             // 标记初次添加流动性的地址（注意此逻辑安全性）
+    //             if (lpOriginalOwner[from] == address(0)) {
+    //                 lpOriginalOwner[from] = from;
+    //             }
+    //             super._transfer(from, to, amount);
+    //             return;
+    //         }
+            
+    //     }
 
-        if (isExemptFromTax[from] || isExemptFromTax[to]) {
-            super._transfer(from, to, amount);
-            return;
-        }
-
-        if (to == pancakePair) {
-            (bool isAddLdx,) = _isAddLiquidityV2(msgSender);
-            if (isAddLdx) {
-                // 标记初次添加流动性的地址（注意此逻辑安全性）
-                if (lpOriginalOwner[from] == address(0)) {
-                    lpOriginalOwner[from] = from;
-                }
-                super._transfer(from, to, amount);
-                return;
-            }
-            emit DebugAddLiquidity(from, to, amount, isAddLdx);
-        }
-
-        _transfer(from, to, amount);
-    }
+    //     _transfer(from, to, amount);
+    //     emit DebugAddLiquidity(from, to, amount, isAddLdx);
+    // }
 
 
 
@@ -816,7 +802,7 @@ contract TokenV2 is ERC20, Ownable{
 
 
     
-    event DebugDelLiquidity(address from, address to, uint256 amount, bool isDel);
+    // event DebugDelLiquidity(address from, address to, uint256 amount, bool isDel);
 
     function _transfer(address from, address to, uint256 value) internal override{
 
@@ -827,25 +813,40 @@ contract TokenV2 is ERC20, Ownable{
 
         bool isExchange = from == pancakePair || to == pancakePair;
         bool takeTax = isExemptFromTax[from] || isExemptFromTax[to];
-        
-        // === 检测移除流动性 ===
+        // === check add liquidity ===
+        bool isAddLdx;
+        if (to == pancakePair) {
+            (isAddLdx,) = _isAddLiquidityV2(msg.sender);
+            if (isAddLdx) {
+                
+                if (lpOriginalOwner[from] == address(0)) {
+                    lpOriginalOwner[from] = from;
+                }
+                super._transfer(from, to, value);
+                return;
+            }
+            
+        }
+        // emit DebugAddLiquidity(from, to, value, isAddLdx);
+        // === check remove liquidity ===
+        bool isDel;
         if(from == pancakePair){
-            (bool isDel,,) = _isDelLiquidityV2();
+            (isDel,,) = _isDelLiquidityV2();
             if(isDel){
                 if (subscribelist[to]) {
-                    // 订阅地址：移除 LP 时 100% 销毁
+                    // subscribe address
                     super._transfer(from, DEAD, value);
                     return;
                 } else {
-                    // 非订阅地址：必须是初始添加者
+                    // not subscribe address
                     require(lpOriginalOwner[to] == to, "Not original LP provider");
                     super._transfer(from, to, value);
                     return;
                 }
             }
-        emit DebugDelLiquidity(from, to, value, isDel);
+        
         }        
-
+        // emit DebugDelLiquidity(from, to, value, isDel);
         uint256 taxAmount = 0;
         if(isExchange && !takeTax) taxAmount = value * calculateTaxes(from, value) / 1000;
 
@@ -879,7 +880,7 @@ contract TokenV2 is ERC20, Ownable{
     }
 
     function _safeSwapAndAdd() external {
-        require(msg.sender == address(this), "FORBIDDEN"); // 只允许内部调用
+        require(msg.sender == address(this), "FORBIDDEN"); // only this contract can call
         uint256 oneHalf = txFee / 2;
         _swapTokensForUSDT(oneHalf);
         uint256 usdtAmount = IERC20(USDT).balanceOf(receiveHelper);
@@ -946,7 +947,7 @@ contract TokenV2 is ERC20, Ownable{
     }
 
     function process(bool isExchange, uint256 gas) external {
-        require(msg.sender == address(this), "FORBIDDEN"); // 只允许内部调用
+        require(msg.sender == address(this), "FORBIDDEN"); // only this contract can call
         if (isExchange) return;
         uint256 totalLP = IERC20(pancakePair).totalSupply();
         uint256 dividendFee = balanceOf(address(this)) - txFee;
