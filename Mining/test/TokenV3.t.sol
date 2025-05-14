@@ -19,7 +19,7 @@ contract TokenV3Test is Test{
 
         mainnetFork = vm.createFork(vm.envString("RPC_URL"));
         vm.selectFork(mainnetFork);
-        tokenV2 = TokenV2(0xE58ADC98e459Ce84FAC27BF450E0337afDa3995d);
+        tokenV2 = TokenV2(0x8883b2A425271F1B318728b7988c93E96680DEEd);
         pair = tokenV2.pancakePair();
         
         user = address(0xF5b6eFEB8A0CB3b2c4dA8A8F99eDD4AAFe8580ca);
@@ -30,20 +30,25 @@ contract TokenV3Test is Test{
     }
     
     function test_removeLiquidity() public {
-        uint256 lpBalance = IUniswapV2Pair(pair).balanceOf(user);
-        console.log("LP Balance of V3: ", lpBalance);
+        deal(pair, user, 1e18);
         vm.startPrank(user);
-        IUniswapV2Pair(pair).approve(uniswapV2Router, lpBalance * 80 / 100);
+        IUniswapV2Pair(pair).approve(uniswapV2Router, 1e18);
+        // vm.expectRevert("Not original LP provider");
+        // vm.expectRevert("Permit error.");
         IUniswapV2Router02(uniswapV2Router).removeLiquidity(
             address(tokenV2), 
             usdt, 
-            lpBalance, 
+            1e18, 
             0, 
             0, 
             user, 
             block.timestamp+10
         );
         vm.stopPrank();
+    }
+
+    function test_addLiquidity_original() public {
+        
     }
 
 }
