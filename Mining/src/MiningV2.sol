@@ -45,6 +45,10 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
     address public permit;
     uint256 public nonce;
 
+    mapping(address => uint256) public stakingValue;
+    mapping(address => uint256) public extractedValue;
+    mapping(address => bool)    public isExemptFrom;//豁免地址
+
 
     function initialize(address _token, address _lp, address _permit) public initializer {
         __EIP712_init_unchained("MiningV2", "1");
@@ -60,6 +64,11 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         _;
     }
 
+    modifier onlyPermit() {
+        require(msg.sender == permit, "Not permit");
+        _;
+    }
+
      // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 
@@ -68,6 +77,13 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         token = _token;
         lp = _lp;
         permit = _permit;
+    }
+
+    function setExemption(address[] calldata _addrs, bool _exempt) external onlyPermit {
+        for (uint i = 0; i < _addrs.length; i++) {
+            require(_addrs[i] != address(0), "ZERO ADDRESS");
+            isExemptFrom[_addrs[i]] = _exempt;
+        }
     }
 
     function getAmountOut(address token0, address token1, uint256 token0Amount) public view returns (uint256) {
@@ -88,7 +104,7 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         uint256 amountUSDT = getAmountOut(token, USDT, amountToken);
         require(amountUSDT >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
-
+        stakingValue[msg.sender] += amountToken;
         emit Staked(msg.sender, amountToken, block.timestamp);
     }
 
@@ -114,6 +130,8 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         require(_msg.deadline >= block.timestamp, "Deadline error.");
         require(!isExcuted[_msg.mark], "Mark excuted");
         require(checkerSignMsgSignature(_msg), "Check signature error.");
+        if(!isExemptFrom[msg.sender]) require(stakingValue[msg.sender] > 0, "No staking amount.");
+        require(_msg.amount + extractedValue[msg.sender] <= stakingValue[msg.sender] * 2, "Claim amount exceeds staking amount * 2.");
         IToken(token).mint(_msg.recipient, _msg.amount);
         isExcuted[_msg.mark] = true;
         nonce++;

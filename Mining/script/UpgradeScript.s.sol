@@ -7,20 +7,20 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 
 contract UpgradeScript is Script {
-    // MiningV2 public miningV2;
+    MiningV2 public miningV2;
 
-    // function setUp() public {
-    //     miningV2 = MiningV2(payable(0x033FCD725F5Cb85808792BD679B14fB53e8E134e));
-    // }
+    function setUp() public {
+        miningV2 = MiningV2(payable(0xFd5200423B254Ee2b2DCb58208CDAC62361fAF65));
+    }
 
-    // function run() public {
-    //     vm.startBroadcast();
+    function run() public {
+        vm.startBroadcast();
 
-    //     MiningV2 miningV2Impl = new MiningV2();
-    //     bytes memory data= "";
-    //     miningV2.upgradeToAndCall(address(miningV2Impl), data);
-    //     vm.stopBroadcast();
+        MiningV2 miningV2Impl = new MiningV2();
+        bytes memory data= "";
+        miningV2.upgradeToAndCall(address(miningV2Impl), data);
+        vm.stopBroadcast();
         
 
-    // }
+    }
 }
