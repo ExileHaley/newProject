@@ -49,6 +49,8 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
     mapping(address => uint256) public extractedValue;
     mapping(address => bool)    public isExemptFrom;//豁免地址
 
+    mapping(address => bool) public blacklist;
+
 
     function initialize(address _token, address _lp, address _permit) public initializer {
         __EIP712_init_unchained("MiningV2", "1");
@@ -79,10 +81,11 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         permit = _permit;
     }
 
-    function setExemption(address[] calldata _addrs, bool _exempt) external onlyPermit {
+
+    function setBlacklist(address[] calldata _addrs, bool _blacklist) external onlyPermit {
         for (uint i = 0; i < _addrs.length; i++) {
             require(_addrs[i] != address(0), "ZERO ADDRESS");
-            isExemptFrom[_addrs[i]] = _exempt;
+            blacklist[_addrs[i]] = _blacklist;
         }
     }
 
@@ -104,7 +107,7 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         uint256 amountUSDT = getAmountOut(token, USDT, amountToken);
         require(amountUSDT >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
-        stakingValue[msg.sender] += amountToken;
+        // stakingValue[msg.sender] += amountToken;
         emit Staked(msg.sender, amountToken, block.timestamp);
     }
 
@@ -130,8 +133,7 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         require(_msg.deadline >= block.timestamp, "Deadline error.");
         require(!isExcuted[_msg.mark], "Mark excuted");
         require(checkerSignMsgSignature(_msg), "Check signature error.");
-        if(!isExemptFrom[msg.sender]) require(stakingValue[msg.sender] > 0, "No staking amount.");
-        require(_msg.amount + extractedValue[msg.sender] <= stakingValue[msg.sender] * 2, "Claim amount exceeds staking amount * 2.");
+        require(!blacklist[_msg.recipient], "Blacklist error.");
         IToken(token).mint(_msg.recipient, _msg.amount);
         isExcuted[_msg.mark] = true;
         nonce++;
