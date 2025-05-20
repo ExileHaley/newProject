@@ -45,10 +45,6 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
     address public permit;
     uint256 public nonce;
 
-    mapping(address => uint256) public stakingValue;
-    mapping(address => uint256) public extractedValue;
-    mapping(address => bool)    public isExemptFrom;//豁免地址
-
     mapping(address => bool) public blacklist;
 
 
@@ -107,7 +103,6 @@ contract MiningV2 is Initializable, OwnableUpgradeable, EIP712Upgradeable, UUPSU
         uint256 amountUSDT = getAmountOut(token, USDT, amountToken);
         require(amountUSDT >= 100e18, "At least 100USDT tokens are required.");
         TransferHelper.safeTransferFrom(token, msg.sender, DEAD, amountToken);
-        // stakingValue[msg.sender] += amountToken;
         emit Staked(msg.sender, amountToken, block.timestamp);
     }
 

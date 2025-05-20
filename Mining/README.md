@@ -15,7 +15,7 @@ $ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
 
 ### deploy
 ```shell
-$ forge script script/UpgradeScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
+$ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.xyz --broadcast --private-key=[privateKey]
 ```
 
 ### build token constructor
@@ -33,7 +33,7 @@ $ forge verify-contract --chain-id 56 --compiler-version v0.8.28+commit.a1b79de6
 
 ### token地址:0xf5869fFf5a90f3e37283e2FE12a818631059AeB6
 ### lp地址:0x10ED43C718714eb63d5aA57B78B54704E256024E
-### 挖矿合约地址:0xFd5200423B254Ee2b2DCb58208CDAC62361fAF65
+### 挖矿合约地址:0x2976632BBA16b9592234d939d0695721a9c705C3
 
 
 ### 挖矿合约ABI:./out/Mining.sol/Mining.json
