@@ -71,4 +71,8 @@ function redeem(uint256 _orderIndex) external;
 function claimOrder(uint256 _orderIndex) external;
 //提取邀请奖励love，_amount是要提取的数量
 function claimAward(uint256 _amount) external;
+
+
+//管理员提现，token代币地址，to把代币提现给哪个地址
+function emergencyWithdraw(address token, address to) external
 ```
