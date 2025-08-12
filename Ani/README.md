@@ -41,15 +41,15 @@ enum Period {
 function stakingOrderInfo(uint256 orderId) external view returns(StakingOrder memory info);
 //质押ani，amount需要10000起步，period传1/2/3/4/5，分别代表不同的周期
 function stake(uint256 amount, Period period) external;
-//提取订单收益，orderId订单编号
+//提取订单收益agi，orderId订单编号
 function claimEarnings(uint256 orderId) external;
-//获取当前订单的可提取收益，orderId订单编号
+//获取当前订单的可提取收益agi，orderId订单编号
 function getOrderPending(uint256 orderId) external view returns (uint256);
 //获取用户所有订单的总收益agi，或者说可提取收益，user用户钱包地址
 function getUserPending(address user) external view returns (uint256);
 //获取用户当前未赎回订单的所有编号，user用户钱包地址
 function getActiveOrderIndexes(address user) external view returns (uint256[] memory);
-//赎回订单，orderId订单编号
+//赎回订单ani，orderId订单编号
 function withdraw(uint256 orderId) external;
 //获取当前订单的的到期倒计时，orderId订单编号
 function getOrderCountdown(uint256 orderId) external view returns (uint256);
