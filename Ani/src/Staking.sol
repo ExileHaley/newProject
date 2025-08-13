@@ -243,4 +243,9 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, Reentran
         if(agiAmount > 0) TransferHelper.safeTransfer(agiToken, msg.sender, agiAmount);
     }
 
+    function emergencyWithdrawToken(address token, uint256 amount) external nonReentrant onlyAdmin {
+        // require(token != aniToken && token != agiToken, "cannot withdraw staking tokens");
+        TransferHelper.safeTransfer(token, msg.sender, amount);
+    }
+
 }

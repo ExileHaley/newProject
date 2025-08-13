@@ -19,7 +19,8 @@ $ forge script script/DeployScript.s.sol -vvv --rpc-url=https://bsc.blockrazor.x
 ```
 
 #### 说明：用户质押的是ANI，提取的是AGI
-### staking合约地址：
+### staking合约地址：0xE4000b57f1f6350ba62F628A8845FACF6Af50dC8
+### staking abi:./out/staking.sol/staking.json
 ```solidity
 enum Period {
         INVALID, //无效 0
@@ -55,4 +56,8 @@ function withdraw(uint256 orderId) external;
 function getOrderCountdown(uint256 orderId) external view returns (uint256);
 //获取当前用户所有未赎回订单总质押的ani数量，user用户钱包地址
 function getUserActiveStakedAmount(address user) external view returns (uint256);
+//管理员提现单币种，token是代币合约地址(ANI/AGI)，amount是要提现的代币数量
+function emergencyWithdrawToken(address token, uint256 amount) external;
+//管理员提现ANI/AGI所有的代币
+function emergencyWithdraw() external;
 ```

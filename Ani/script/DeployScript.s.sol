@@ -14,7 +14,7 @@ contract DeployScript is Script{
     function setUp() public {
         aniToken = address(0x77e066D53529d4104b4b98a5aE3668155601F4dA);
         agiToken = address(0xc2Da04c41519dda050ce2e05e28F8AeB74A4B52d);
-        admin = address(0xc2Da04c41519dda050ce2e05e28F8AeB74A4B52d);
+        admin = address(0xE1cE74179318a119feD3C4d90558950a04686151);
     }
 
     function run() public {
