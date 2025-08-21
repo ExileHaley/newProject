@@ -88,6 +88,20 @@ contract Staking is Initializable, OwnableUpgradeable, UUPSUpgradeable, Reentran
 
     }
 
+    function setPerTokenPerSecondFP() external onlyOwner {
+        uint256 d1 = 1000000000000000;   // 0.1 * 1e18
+        uint256 d7 = 1100000000000000;   // 0.11 * 1e18
+        uint256 d30 = 1500000000000000;  // 0.15 * 1e18
+        uint256 d90 = 2000000000000000;  // 0.2  * 1e18
+        uint256 d365 = 3500000000000000; // 0.35 * 1e18
+
+        perTokenPerSecondFP[Period.ONE_DAY] = d1 / 10000 / 86400;
+        perTokenPerSecondFP[Period.SEVEN_DAYS] = d7 / 10000 / 86400;
+        perTokenPerSecondFP[Period.ONE_MONTH] = d30 / 10000 / 86400;
+        perTokenPerSecondFP[Period.THREE_MONTHS] = d90 / 10000 / 86400;
+        perTokenPerSecondFP[Period.ONE_YEAR] = d365 / 10000 / 86400;
+    }
+
      // Authorize contract upgrades only by the owner
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner(){}
 

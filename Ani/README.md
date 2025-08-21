@@ -1,15 +1,15 @@
 ### install foundry-rs/forge-std
 ```shell
-$ forge install foundry-rs/forge-std --no-commit
+$ forge install foundry-rs/forge-std --no-commit --no-git
 ```
 ### install openzeppelin-contracts
 ```shell
-$ forge install openzeppelin/openzeppelin-contracts --no-commit
+$ forge install openzeppelin/openzeppelin-contracts --no-commit --no-git
 ```
 
 ### install openzeppelin-contracts-upgradeable
 ```shell
-$ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit
+$ forge install openzeppelin/openzeppelin-contracts-upgradeable --no-commit --no-git
 ```
 
 
